@@ -1,0 +1,24 @@
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ *
+ * Constrain the instant-search dropdown rows. The `image` display field renders the raw
+ * catalog media URL (a full-size original — this read-only module cannot mint resized cache
+ * URLs), so a fixed thumbnail box is required or the image blows out the dropdown layout.
+ */
+#search_autocomplete .qs-option-image {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+#search_autocomplete .qs-option-image img {
+    display: block;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+#search_autocomplete .qs-option-sku,
+#search_autocomplete .qs-option-price {
+    margin-left: 10px;
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ *
+ * Emit the instant-search config the mapped widget reads. This ADDS a block that
+ * outputs the InstantSearchConfig view model's JSON — it does NOT override the stock
+ * search form template or layout, so the RequireJS `quickSearch` map override stays
+ * theme-agnostic. When the view model fails closed the block prints nothing and
+ * Magento's native autocomplete is left in place.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="MageDevGroup_TypesenseInstantSearch::css/instant-search.css"/>
+    </head>
+    <body>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="magedevgroup.typesense.instant_search.config"
+                   template="MageDevGroup_TypesenseInstantSearch::config.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">
+                        MageDevGroup\TypesenseInstantSearch\ViewModel\InstantSearchConfig
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

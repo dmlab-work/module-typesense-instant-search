@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!--
+        The parent search-only key is a credential: keep it out of app/etc/config.php by marking
+        its path sensitive, so config:show / config dump never leak it.
+    -->
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="magedevgroup_typesense/instant_search/search_api_key" xsi:type="string">1</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!--
+        The browser queries Typesense directly, so its configured public host must be an allowed
+        connect-src origin. The host is admin config, not a literal, so it cannot live in the static
+        etc/csp_whitelist.xml; this collector merges it in at runtime.
+    -->
+    <type name="Magento\Csp\Model\CompositePolicyCollector">
+        <arguments>
+            <argument name="collectors" xsi:type="array">
+                <item name="magedevgroup_typesense_instant_search" xsi:type="object" sortOrder="200">
+                    MageDevGroup\TypesenseInstantSearch\Model\Csp\TypesensePolicyCollector
+                </item>
+            </argument>
+        </arguments>
+    </type>
+</config>

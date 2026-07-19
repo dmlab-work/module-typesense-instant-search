@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="magedevgroup_typesense">
+            <group id="instant_search" translate="label" type="text" sortOrder="40"
+                   showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Instant Search</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enable Instant Search</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Replaces the stock autocomplete with typo-tolerant search-as-you-type. When the
+                        search-only key is missing the storefront falls back to native search.</comment>
+                </field>
+                <field id="mode" translate="label comment" type="select" sortOrder="12"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Query Mode</label>
+                    <source_model>MageDevGroup\TypesenseInstantSearch\Model\Config\Source\Mode</source_model>
+                    <comment><![CDATA[<strong>Proxy</strong> (default): the browser queries a Magento endpoint;
+                        Typesense stays private, no host/key/CSP needed. <strong>Direct</strong>: the browser queries
+                        Typesense with a scoped read-only key — lowest latency, but requires exposing Typesense over
+                        HTTPS.]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="key_status" translate="label comment" type="label" sortOrder="15"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Search-Only Key</label>
+                    <frontend_model>MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config\KeyStatus</frontend_model>
+                    <comment><![CDATA[Auto-provisioned from the Typesense admin key when direct mode is saved;
+                        only a derived scoped key ever reaches the browser. No CLI, no paste box.]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="mode">direct</field>
+                    </depends>
+                </field>
+                <field id="regenerate_key" translate="label" type="button" sortOrder="16"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Regenerate Key</label>
+                    <frontend_model>MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config\RegenerateButton</frontend_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="mode">direct</field>
+                    </depends>
+                </field>
+                <field id="public_host" translate="label comment" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Public Typesense Host</label>
+                    <comment><![CDATA[Publicly reachable Typesense host the browser connects to, e.g.
+                        <code>search.example.com</code>. May differ from the server-side host under Catalog Search.
+                        The browser always connects over <strong>HTTPS</strong>; include a non-standard port in the
+                        value itself (e.g. <code>search.example.com:8108</code>).]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="mode">direct</field>
+                    </depends>
+                </field>
+                <field id="min_query_length" translate="label comment" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Minimum Query Length</label>
+                    <comment>Characters that must be typed before a request is sent.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="result_limit" translate="label comment" type="text" sortOrder="40"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Result Limit</label>
+                    <comment>Maximum number of suggestions shown in the dropdown.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="debounce_ms" translate="label comment" type="text" sortOrder="50"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Debounce (ms)</label>
+                    <comment>Milliseconds to wait after the last keystroke before querying.</comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="display_title" translate="label" type="select" sortOrder="60"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Show Title</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="display_image" translate="label" type="select" sortOrder="70"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Show Image</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="display_price" translate="label" type="select" sortOrder="80"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Show Price</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="display_sku" translate="label" type="select" sortOrder="90"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Show SKU</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

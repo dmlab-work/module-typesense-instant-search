@@ -1,0 +1,31 @@
+{
+    "name": "magedevgroup/module-typesense-instant-search",
+    "description": "Storefront instant, typo-tolerant search-as-you-type for Magento 2. Replaces the stock autocomplete in place via a RequireJS map override — no Hyvä/Alpine/React dependency, works on stock Luma. Proxy mode keeps Typesense private (default); direct mode queries it from the browser with a derived scoped search-only key. Free and uncapped.",
+    "type": "magento2-module",
+    "license": "OSL-3.0",
+    "version": "0.0.1",
+    "require": {
+        "php": "~8.3.0||~8.4.0||~8.5.0",
+        "magento/framework": ">=103.0",
+        "magedevgroup/module-typesense-core": ">=0.0.1",
+        "magedevgroup/module-typesense-indexer": ">=0.0.1",
+        "magento/module-catalog": ">=104.0",
+        "magento/module-catalog-search": ">=102.0",
+        "magento/module-customer": ">=103.0",
+        "magento/module-search": ">=101.0",
+        "magento/module-csp": ">=100.0",
+        "magento/module-store": ">=101.0",
+        "magento/module-config": ">=101.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "MageDevGroup\\TypesenseInstantSearch\\": ""
+        }
+    }
+}

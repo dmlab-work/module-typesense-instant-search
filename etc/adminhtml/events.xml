@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- Enabling direct mode auto-provisions the search-only key on save — no CLI. -->
+    <event name="admin_system_config_changed_section_magedevgroup_typesense">
+        <observer name="magedevgroup_typesense_instant_search_provision_key"
+                  instance="MageDevGroup\TypesenseInstantSearch\Observer\ProvisionSearchKey"/>
+    </event>
+</config>

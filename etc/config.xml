@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © MageDevGroup. All rights reserved.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <magedevgroup_typesense>
+            <instant_search>
+                <enabled>0</enabled>
+                <mode>proxy</mode>
+                <min_query_length>3</min_query_length>
+                <result_limit>5</result_limit>
+                <debounce_ms>200</debounce_ms>
+                <display_title>1</display_title>
+                <display_image>1</display_image>
+                <display_price>1</display_price>
+                <display_sku>0</display_sku>
+            </instant_search>
+        </magedevgroup_typesense>
+    </default>
+</config>
