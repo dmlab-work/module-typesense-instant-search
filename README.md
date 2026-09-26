@@ -1,10 +1,10 @@
-# MageDevGroup_TypesenseInstantSearch
+# DmLab_TypesenseInstantSearch
 
 Storefront instant, typo-tolerant search-as-you-type for Magento 2 (L3 of the Typesense suite).
 Replaces the stock autocomplete **in place** with a rich product dropdown (title / image / price /
 SKU). Free and uncapped, no Hyvä/Alpine/React dependency — it works on stock Luma through Magento's
 standard RequireJS `data-mage-init` machinery. Read-only: writes no documents, patches no schema.
-Depends on `magedevgroup/module-typesense-indexer` and `-core`.
+Depends on `dmlab/module-typesense-indexer` and `-core`.
 
 ## Two query modes
 
@@ -22,12 +22,12 @@ render the identical dropdown from the same fat-document fields — only the fet
 ## Install & configure
 
 ```bash
-composer require magedevgroup/module-typesense-instant-search
-bin/magento module:enable MageDevGroup_TypesenseInstantSearch
+composer require dmlab/module-typesense-instant-search
+bin/magento module:enable DmLab_TypesenseInstantSearch
 bin/magento setup:upgrade
 ```
 
-Admin → *Stores → Configuration → MageDevGroup Typesense → Instant Search*:
+Admin → *Stores → Configuration → DMLab Typesense → Instant Search*:
 
 | Field | Default | Notes |
 |---|---|---|
@@ -71,4 +71,4 @@ CORS-enabled Typesense host.
 
 ## License
 
-OSL-3.0 © MageDevGroup.
+OSL-3.0 © DMLab.

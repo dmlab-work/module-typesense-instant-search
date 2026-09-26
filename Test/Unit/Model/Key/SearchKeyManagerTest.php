@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model\Key;
 
-use MageDevGroup\TypesenseCore\Model\Client\TypesenseClient;
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyManager;
+use DmLab\TypesenseCore\Model\Client\TypesenseClient;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyManager;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
@@ -101,9 +101,9 @@ class SearchKeyManagerTest extends TestCase
             static function (string $method, string $path) use (&$deleted) {
                 if ($method === 'GET' && $path === '/keys') {
                     return ['keys' => [
-                        ['id' => 3, 'description' => 'MageDevGroup instant search (storefront search-only)'],
+                        ['id' => 3, 'description' => 'DmLab instant search (storefront search-only)'],
                         ['id' => 4, 'description' => 'some other admin key'],
-                        ['id' => 5, 'description' => 'MageDevGroup instant search (storefront search-only)'],
+                        ['id' => 5, 'description' => 'DmLab instant search (storefront search-only)'],
                     ]];
                 }
                 $deleted[] = $method . ' ' . $path;

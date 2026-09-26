@@ -1,16 +1,16 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Controller\Ajax;
+namespace DmLab\TypesenseInstantSearch\Controller\Ajax;
 
-use MageDevGroup\TypesenseCore\Model\Client\TypesenseClient;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
-use MageDevGroup\TypesenseInstantSearch\Model\RateGuard;
-use MageDevGroup\TypesenseInstantSearch\Model\Search\QuerySpec;
-use MageDevGroup\TypesenseInstantSearch\Model\Search\ResultMapper;
+use DmLab\TypesenseCore\Model\Client\TypesenseClient;
+use DmLab\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseInstantSearch\Model\RateGuard;
+use DmLab\TypesenseInstantSearch\Model\Search\QuerySpec;
+use DmLab\TypesenseInstantSearch\Model\Search\ResultMapper;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;

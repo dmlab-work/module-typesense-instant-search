@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Observer;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Observer;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
-use MageDevGroup\TypesenseInstantSearch\Observer\ProvisionSearchKey;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
+use DmLab\TypesenseInstantSearch\Observer\ProvisionSearchKey;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;

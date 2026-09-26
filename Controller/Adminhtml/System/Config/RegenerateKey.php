@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Controller\Adminhtml\System\Config;
+namespace DmLab\TypesenseInstantSearch\Controller\Adminhtml\System\Config;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;

@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model\Search;
+namespace DmLab\TypesenseInstantSearch\Model\Search;
 
-use MageDevGroup\TypesenseIndexer\Api\FieldNameResolverInterface;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseIndexer\Api\FieldNameResolverInterface;
+use DmLab\TypesenseInstantSearch\Model\Config;
 use Magento\Catalog\Model\Product\Media\ConfigInterface as MediaConfig;
 use Magento\Customer\Model\Context as CustomerContext;
 use Magento\Customer\Model\Group;
@@ -191,7 +191,7 @@ class ResultMapper
     /**
      * Resolve the scoped price field name for the current customer group and this store's website.
      *
-     * Mirrors {@see \MageDevGroup\TypesenseInstantSearch\ViewModel\InstantSearchConfig}: the group
+     * Mirrors {@see \DmLab\TypesenseInstantSearch\ViewModel\InstantSearchConfig}: the group
      * comes from the FPC-varied HTTP context so cached pages honour group/catalog-rule prices.
      *
      * @param int $storeId

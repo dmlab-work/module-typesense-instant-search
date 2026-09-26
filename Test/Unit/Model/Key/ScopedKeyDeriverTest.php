@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model\Key;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
+use DmLab\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
 use PHPUnit\Framework\TestCase;
 
 class ScopedKeyDeriverTest extends TestCase

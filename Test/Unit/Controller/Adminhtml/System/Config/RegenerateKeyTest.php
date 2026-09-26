@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Controller\Adminhtml\System\Config;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Controller\Adminhtml\System\Config;
 
-use MageDevGroup\TypesenseInstantSearch\Controller\Adminhtml\System\Config\RegenerateKey;
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
+use DmLab\TypesenseInstantSearch\Controller\Adminhtml\System\Config\RegenerateKey;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;

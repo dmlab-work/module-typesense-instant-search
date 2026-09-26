@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Observer;
+namespace DmLab\TypesenseInstantSearch\Observer;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -15,7 +15,7 @@ use Magento\Framework\Phrase;
 /**
  * Provisions the search-only key when the Instant Search config section is saved.
  *
- * Bound to `admin_system_config_changed_section_magedevgroup_typesense`, so enabling direct mode
+ * Bound to `admin_system_config_changed_section_dmlab_typesense`, so enabling direct mode
  * mints the key with no command to run ({@see SearchKeyProvisioner::ensure()} is idempotent, a
  * no-op in proxy mode or once a key exists).
  *

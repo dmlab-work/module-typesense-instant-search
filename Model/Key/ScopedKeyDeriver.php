@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Model\Key;
 
 /**
  * Derives a Typesense scoped search-only key from a parent key — a pure local HMAC.

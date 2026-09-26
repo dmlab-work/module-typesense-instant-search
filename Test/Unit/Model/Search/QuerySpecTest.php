@@ -1,15 +1,15 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model\Search;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model\Search;
 
-use MageDevGroup\TypesenseIndexer\Api\IndexNameResolverInterface;
-use MageDevGroup\TypesenseIndexer\Api\SearchableFieldsProviderInterface;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
-use MageDevGroup\TypesenseInstantSearch\Model\Search\QuerySpec;
+use DmLab\TypesenseIndexer\Api\IndexNameResolverInterface;
+use DmLab\TypesenseIndexer\Api\SearchableFieldsProviderInterface;
+use DmLab\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseInstantSearch\Model\Search\QuerySpec;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\CatalogSearch\Model\Indexer\Fulltext;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;

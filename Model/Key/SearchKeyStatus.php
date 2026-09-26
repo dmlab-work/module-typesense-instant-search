@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Model\Key;
 
-use MageDevGroup\TypesenseInstantSearch\Model\SearchKeyProvider;
+use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
 
 /**
  * Renders the read-only "is the search-only key provisioned?" status shown in admin config.

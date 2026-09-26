@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
-use MageDevGroup\TypesenseInstantSearch\Model\SearchKeyProvider;
+use DmLab\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
+use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -37,7 +37,7 @@ class SearchKeyProviderTest extends TestCase
         // The request path can only ever see the search-only key path — never the admin key under
         // catalog/search. The constant makes that boundary structural.
         self::assertSame(
-            'magedevgroup_typesense/instant_search/search_api_key',
+            'dmlab_typesense/instant_search/search_api_key',
             SearchKeyProvider::XML_PATH_SEARCH_API_KEY
         );
         self::assertStringNotContainsString('catalog/search', SearchKeyProvider::XML_PATH_SEARCH_API_KEY);

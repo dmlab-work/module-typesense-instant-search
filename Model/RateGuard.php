@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model;
+namespace DmLab\TypesenseInstantSearch\Model;
 
 use Magento\Framework\App\CacheInterface;
 
@@ -19,10 +19,10 @@ use Magento\Framework\App\CacheInterface;
 class RateGuard
 {
     /** Cache key prefix for the per-identifier counter. */
-    private const CACHE_PREFIX = 'mdg_typesense_is_rate_';
+    private const CACHE_PREFIX = 'dmlab_typesense_is_rate_';
 
     /** Cache tag so the counters clear with the app cache. */
-    private const CACHE_TAG = 'MDG_TYPESENSE_INSTANT_SEARCH_RATE';
+    private const CACHE_TAG = 'DMLAB_TYPESENSE_INSTANT_SEARCH_RATE';
 
     /**
      * @param CacheInterface $cache shared app cache backing the counters

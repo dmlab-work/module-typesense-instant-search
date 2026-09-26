@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model\Search;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model\Search;
 
-use MageDevGroup\TypesenseIndexer\Api\FieldNameResolverInterface;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
-use MageDevGroup\TypesenseInstantSearch\Model\Search\ResultMapper;
+use DmLab\TypesenseIndexer\Api\FieldNameResolverInterface;
+use DmLab\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseInstantSearch\Model\Search\ResultMapper;
 use Magento\Catalog\Model\Product\Media\ConfigInterface as MediaConfig;
 use Magento\Customer\Model\Context as CustomerContext;
 use Magento\Framework\App\Config\ScopeConfigInterface;

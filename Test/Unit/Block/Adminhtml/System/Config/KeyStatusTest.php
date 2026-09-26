@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Block\Adminhtml\System\Config;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Block\Adminhtml\System\Config;
 
-use MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config\KeyStatus;
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyStatus;
+use DmLab\TypesenseInstantSearch\Block\Adminhtml\System\Config\KeyStatus;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyStatus;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use PHPUnit\Framework\TestCase;
 

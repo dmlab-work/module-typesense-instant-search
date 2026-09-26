@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config;
+namespace DmLab\TypesenseInstantSearch\Block\Adminhtml\System\Config;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
@@ -14,7 +14,7 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 /**
  * System-config frontend model rendering the "Regenerate key" button.
  *
- * Posts to {@see \MageDevGroup\TypesenseInstantSearch\Controller\Adminhtml\System\Config\RegenerateKey}
+ * Posts to {@see \DmLab\TypesenseInstantSearch\Controller\Adminhtml\System\Config\RegenerateKey}
  * which re-provisions the search-only key, then reloads so the status field reflects the new key.
  * The form key travels in the request so the POST passes CSRF validation.
  *
@@ -24,7 +24,7 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
  */
 class RegenerateButton extends Field
 {
-    private const REGENERATE_ROUTE = 'magedevgroup_typesense/system_config/regeneratekey';
+    private const REGENERATE_ROUTE = 'dmlab_typesense/system_config/regeneratekey';
 
     /**
      * @param Context $context
@@ -58,7 +58,7 @@ class RegenerateButton extends Field
         $url = $this->escapeHtmlAttr($url);
         $formKey = $this->escapeHtmlAttr($formKey);
         $init = $this->escapeHtmlAttr(
-            '{"MageDevGroup_TypesenseInstantSearch/js/regenerate": {}}'
+            '{"DmLab_TypesenseInstantSearch/js/regenerate": {}}'
         );
 
         return <<<HTML

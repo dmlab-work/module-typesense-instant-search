@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model\Key;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyStatus;
-use MageDevGroup\TypesenseInstantSearch\Model\SearchKeyProvider;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyStatus;
+use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
 use PHPUnit\Framework\TestCase;
 
 class SearchKeyStatusTest extends TestCase

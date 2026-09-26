@@ -1,10 +1,10 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\View;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\View;
 
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +27,7 @@ class InstantSearchWidgetWiringTest extends TestCase
         // The stock `quickSearch` alias is remapped in place to our widget — the swap
         // that replaces Magento's autocomplete without a template or layout override.
         self::assertMatchesRegularExpression(
-            '/quickSearch\s*:\s*[\'"]MageDevGroup_TypesenseInstantSearch\/js\/instant-search[\'"]/',
+            '/quickSearch\s*:\s*[\'"]DmLab_TypesenseInstantSearch\/js\/instant-search[\'"]/',
             $js
         );
     }
@@ -89,24 +89,24 @@ class InstantSearchWidgetWiringTest extends TestCase
         self::assertNotFalse($xml);
 
         $block = $xml->xpath(
-            '//block[@name="magedevgroup.typesense.instant_search.config"]'
+            '//block[@name="dmlab.typesense.instant_search.config"]'
         );
         self::assertNotEmpty($block, 'config block must be declared');
 
         self::assertSame(
-            'MageDevGroup_TypesenseInstantSearch::config.phtml',
+            'DmLab_TypesenseInstantSearch::config.phtml',
             (string)$block[0]['template']
         );
 
         $viewModel = $xml->xpath(
-            '//block[@name="magedevgroup.typesense.instant_search.config"]'
+            '//block[@name="dmlab.typesense.instant_search.config"]'
             . '/arguments/argument[@name="view_model"]'
         );
         self::assertNotEmpty($viewModel, 'view model must be wired as a block argument');
         $xsiType = $viewModel[0]->attributes('xsi', true)['type'];
         self::assertSame('object', (string)$xsiType);
         self::assertSame(
-            'MageDevGroup\\TypesenseInstantSearch\\ViewModel\\InstantSearchConfig',
+            'DmLab\\TypesenseInstantSearch\\ViewModel\\InstantSearchConfig',
             trim((string)$viewModel[0])
         );
     }
@@ -120,6 +120,6 @@ class InstantSearchWidgetWiringTest extends TestCase
         // The template reads the wired view model and prints its JSON for the widget to read.
         self::assertStringContainsString('getViewModel()', $phtml);
         self::assertStringContainsString('getJsonConfig()', $phtml);
-        self::assertStringContainsString('magedevgroup-typesense-instant-search-config', $phtml);
+        self::assertStringContainsString('dmlab-typesense-instant-search-config', $phtml);
     }
 }

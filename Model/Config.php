@@ -1,18 +1,18 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model;
+namespace DmLab\TypesenseInstantSearch\Model;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Config\Source\Mode;
+use DmLab\TypesenseInstantSearch\Model\Config\Source\Mode;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
 /**
  * Typed reader over this module's storefront instant-search settings.
  *
- * Core's {@see \MageDevGroup\TypesenseCore\Model\Config} owns the connection (server host,
+ * Core's {@see \DmLab\TypesenseCore\Model\Config} owns the connection (server host,
  * admin key, timeouts); this reader owns only what the browser widget needs. The public host
  * is deliberately a separate path from the server host — the browser may reach Typesense at a
  * different address than PHP does.
@@ -20,34 +20,34 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 class Config
 {
     /** Master switch for the storefront widget. */
-    public const XML_PATH_ENABLED = 'magedevgroup_typesense/instant_search/enabled';
+    public const XML_PATH_ENABLED = 'dmlab_typesense/instant_search/enabled';
 
     /** Frontend query mode: proxy (default) or direct. */
-    public const XML_PATH_MODE = 'magedevgroup_typesense/instant_search/mode';
+    public const XML_PATH_MODE = 'dmlab_typesense/instant_search/mode';
 
     /** Publicly reachable Typesense host the browser connects to; may differ from the server host. */
-    public const XML_PATH_PUBLIC_HOST = 'magedevgroup_typesense/instant_search/public_host';
+    public const XML_PATH_PUBLIC_HOST = 'dmlab_typesense/instant_search/public_host';
 
     /** Characters typed before the first request. */
-    public const XML_PATH_MIN_QUERY_LENGTH = 'magedevgroup_typesense/instant_search/min_query_length';
+    public const XML_PATH_MIN_QUERY_LENGTH = 'dmlab_typesense/instant_search/min_query_length';
 
     /** Maximum suggestions in the dropdown. */
-    public const XML_PATH_RESULT_LIMIT = 'magedevgroup_typesense/instant_search/result_limit';
+    public const XML_PATH_RESULT_LIMIT = 'dmlab_typesense/instant_search/result_limit';
 
     /** Milliseconds after the last keystroke before querying. */
-    public const XML_PATH_DEBOUNCE_MS = 'magedevgroup_typesense/instant_search/debounce_ms';
+    public const XML_PATH_DEBOUNCE_MS = 'dmlab_typesense/instant_search/debounce_ms';
 
     /** Whether the suggestion row shows the product title. */
-    public const XML_PATH_DISPLAY_TITLE = 'magedevgroup_typesense/instant_search/display_title';
+    public const XML_PATH_DISPLAY_TITLE = 'dmlab_typesense/instant_search/display_title';
 
     /** Whether the suggestion row shows the product image. */
-    public const XML_PATH_DISPLAY_IMAGE = 'magedevgroup_typesense/instant_search/display_image';
+    public const XML_PATH_DISPLAY_IMAGE = 'dmlab_typesense/instant_search/display_image';
 
     /** Whether the suggestion row shows the price. */
-    public const XML_PATH_DISPLAY_PRICE = 'magedevgroup_typesense/instant_search/display_price';
+    public const XML_PATH_DISPLAY_PRICE = 'dmlab_typesense/instant_search/display_price';
 
     /** Whether the suggestion row shows the SKU. */
-    public const XML_PATH_DISPLAY_SKU = 'magedevgroup_typesense/instant_search/display_sku';
+    public const XML_PATH_DISPLAY_SKU = 'dmlab_typesense/instant_search/display_sku';
 
     private const DEFAULT_MIN_QUERY_LENGTH = 3;
     private const DEFAULT_RESULT_LIMIT = 5;

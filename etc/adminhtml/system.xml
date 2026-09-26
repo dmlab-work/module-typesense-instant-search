@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="magedevgroup_typesense">
+        <section id="dmlab_typesense">
             <group id="instant_search" translate="label" type="text" sortOrder="40"
                    showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Instant Search</label>
@@ -21,7 +21,7 @@
                 <field id="mode" translate="label comment" type="select" sortOrder="12"
                        showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Query Mode</label>
-                    <source_model>MageDevGroup\TypesenseInstantSearch\Model\Config\Source\Mode</source_model>
+                    <source_model>DmLab\TypesenseInstantSearch\Model\Config\Source\Mode</source_model>
                     <comment><![CDATA[<strong>Proxy</strong> (default): the browser queries a Magento endpoint;
                         Typesense stays private, no host/key/CSP needed. <strong>Direct</strong>: the browser queries
                         Typesense with a scoped read-only key — lowest latency, but requires exposing Typesense over
@@ -33,7 +33,7 @@
                 <field id="key_status" translate="label comment" type="label" sortOrder="15"
                        showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Search-Only Key</label>
-                    <frontend_model>MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config\KeyStatus</frontend_model>
+                    <frontend_model>DmLab\TypesenseInstantSearch\Block\Adminhtml\System\Config\KeyStatus</frontend_model>
                     <comment><![CDATA[Auto-provisioned from the Typesense admin key when direct mode is saved;
                         only a derived scoped key ever reaches the browser. No CLI, no paste box.]]></comment>
                     <depends>
@@ -44,7 +44,7 @@
                 <field id="regenerate_key" translate="label" type="button" sortOrder="16"
                        showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Regenerate Key</label>
-                    <frontend_model>MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config\RegenerateButton</frontend_model>
+                    <frontend_model>DmLab\TypesenseInstantSearch\Block\Adminhtml\System\Config\RegenerateButton</frontend_model>
                     <depends>
                         <field id="enabled">1</field>
                         <field id="mode">direct</field>

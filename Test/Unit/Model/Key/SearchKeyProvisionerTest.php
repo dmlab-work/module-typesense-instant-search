@@ -1,16 +1,16 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model\Key;
 
-use MageDevGroup\TypesenseIndexer\Api\IndexNameResolverInterface;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyManager;
-use MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
-use MageDevGroup\TypesenseInstantSearch\Model\SearchKeyProvider;
+use DmLab\TypesenseIndexer\Api\IndexNameResolverInterface;
+use DmLab\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyManager;
+use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
+use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
 use Magento\CatalogSearch\Model\Indexer\Fulltext;
 use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Cache\TypeListInterface;

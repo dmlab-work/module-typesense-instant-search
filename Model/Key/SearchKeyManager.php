@@ -1,17 +1,17 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Model\Key;
 
-use MageDevGroup\TypesenseCore\Model\Client\TypesenseClient;
+use DmLab\TypesenseCore\Model\Client\TypesenseClient;
 
 /**
  * Creates the parent search-only key — the one write in this module's key machinery.
  *
- * This is the create half, driven by {@see \MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner}:
+ * This is the create half, driven by {@see \DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner}:
  * a `POST /keys` through core's generic client using the admin key, minting a key restricted to
  * `documents:search` on the given collections. The returned value is stored encrypted; from then on
  * the request path only *derives* from it ({@see ScopedKeyDeriver}) — no admin key, no API call.
@@ -27,7 +27,7 @@ class SearchKeyManager
     private const SEARCH_ACTION = 'documents:search';
 
     /** Human-readable label stored on the Typesense side so the key is identifiable in `GET /keys`. */
-    private const KEY_DESCRIPTION = 'MageDevGroup instant search (storefront search-only)';
+    private const KEY_DESCRIPTION = 'DmLab instant search (storefront search-only)';
 
     /**
      * @param TypesenseClient $client core's generic client, called here with the admin key
@@ -45,7 +45,7 @@ class SearchKeyManager
      *
      * @param string[] $collections collection names (or alias names) the key may search
      * @return string the parent key value
-     * @throws \MageDevGroup\TypesenseCore\Exception\TypesenseException on a failed write
+     * @throws \DmLab\TypesenseCore\Exception\TypesenseException on a failed write
      * @throws \RuntimeException when the response carries no key value
      */
     public function createParentSearchKey(array $collections): string
@@ -72,7 +72,7 @@ class SearchKeyManager
      * the Typesense side: every scoped key derived from it — including any that leaked into page
      * source — stops working at once, instead of remaining valid forever.
      *
-     * @throws \MageDevGroup\TypesenseCore\Exception\TypesenseException on a failed read or delete
+     * @throws \DmLab\TypesenseCore\Exception\TypesenseException on a failed read or delete
      */
     public function deleteExistingSearchKeys(): void
     {

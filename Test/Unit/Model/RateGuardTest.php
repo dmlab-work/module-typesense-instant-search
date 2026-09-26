@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Model;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Model;
 
-use MageDevGroup\TypesenseInstantSearch\Model\RateGuard;
+use DmLab\TypesenseInstantSearch\Model\RateGuard;
 use Magento\Framework\App\CacheInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -44,7 +44,7 @@ class RateGuardTest extends TestCase
 
         $this->cache->expects(self::once())
             ->method('save')
-            ->with('5', 'mdg_typesense_is_rate_' . sha1('1.2.3.4'), self::anything(), 10);
+            ->with('5', 'dmlab_typesense_is_rate_' . sha1('1.2.3.4'), self::anything(), 10);
 
         self::assertTrue($guard->allow('1.2.3.4'));
     }

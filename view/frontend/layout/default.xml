@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Emit the instant-search config the mapped widget reads. This ADDS a block that
  * outputs the InstantSearchConfig view model's JSON — it does NOT override the stock
@@ -13,16 +13,16 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
-        <css src="MageDevGroup_TypesenseInstantSearch::css/instant-search.css"/>
+        <css src="DmLab_TypesenseInstantSearch::css/instant-search.css"/>
     </head>
     <body>
         <referenceContainer name="before.body.end">
             <block class="Magento\Framework\View\Element\Template"
-                   name="magedevgroup.typesense.instant_search.config"
-                   template="MageDevGroup_TypesenseInstantSearch::config.phtml">
+                   name="dmlab.typesense.instant_search.config"
+                   template="DmLab_TypesenseInstantSearch::config.phtml">
                 <arguments>
                     <argument name="view_model" xsi:type="object">
-                        MageDevGroup\TypesenseInstantSearch\ViewModel\InstantSearchConfig
+                        DmLab\TypesenseInstantSearch\ViewModel\InstantSearchConfig
                     </argument>
                 </arguments>
             </block>

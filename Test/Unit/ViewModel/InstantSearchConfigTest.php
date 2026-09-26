@@ -1,18 +1,18 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\ViewModel;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\ViewModel;
 
-use MageDevGroup\TypesenseIndexer\Api\FieldNameResolverInterface;
-use MageDevGroup\TypesenseIndexer\Api\IndexNameResolverInterface;
-use MageDevGroup\TypesenseIndexer\Api\SearchableFieldsProviderInterface;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
-use MageDevGroup\TypesenseInstantSearch\Model\Config\Source\Mode;
-use MageDevGroup\TypesenseInstantSearch\Model\SearchKeyProvider;
-use MageDevGroup\TypesenseInstantSearch\ViewModel\InstantSearchConfig;
+use DmLab\TypesenseIndexer\Api\FieldNameResolverInterface;
+use DmLab\TypesenseIndexer\Api\IndexNameResolverInterface;
+use DmLab\TypesenseIndexer\Api\SearchableFieldsProviderInterface;
+use DmLab\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseInstantSearch\Model\Config\Source\Mode;
+use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
+use DmLab\TypesenseInstantSearch\ViewModel\InstantSearchConfig;
 use Magento\Catalog\Model\Product\Media\ConfigInterface as MediaConfig;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\CatalogSearch\Model\Indexer\Fulltext;

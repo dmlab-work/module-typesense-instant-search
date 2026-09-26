@@ -1,14 +1,14 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model\Key;
+namespace DmLab\TypesenseInstantSearch\Model\Key;
 
-use MageDevGroup\TypesenseIndexer\Api\IndexNameResolverInterface;
-use MageDevGroup\TypesenseInstantSearch\Model\Config;
-use MageDevGroup\TypesenseInstantSearch\Model\SearchKeyProvider;
+use DmLab\TypesenseIndexer\Api\IndexNameResolverInterface;
+use DmLab\TypesenseInstantSearch\Model\Config;
+use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
 use Magento\CatalogSearch\Model\Indexer\Fulltext;
 use Magento\Framework\App\Cache\Type\Config as ConfigCache;
 use Magento\Framework\App\Cache\TypeListInterface;
@@ -56,8 +56,8 @@ class SearchKeyProvisioner
      *
      * Idempotent and safe to call on every config save.
      *
-     * @throws \MageDevGroup\TypesenseCore\Exception\ConfigurationException when the admin key is unset
-     * @throws \MageDevGroup\TypesenseCore\Exception\TypesenseException on a failed write
+     * @throws \DmLab\TypesenseCore\Exception\ConfigurationException when the admin key is unset
+     * @throws \DmLab\TypesenseCore\Exception\TypesenseException on a failed write
      */
     public function ensure(): void
     {
@@ -74,8 +74,8 @@ class SearchKeyProvisioner
      * The previous key is deleted on the Typesense side before the new one is minted, so scoped
      * keys derived from it stop working — regenerating actually revokes a leaked key.
      *
-     * @throws \MageDevGroup\TypesenseCore\Exception\ConfigurationException when the admin key is unset
-     * @throws \MageDevGroup\TypesenseCore\Exception\TypesenseException on a failed write
+     * @throws \DmLab\TypesenseCore\Exception\ConfigurationException when the admin key is unset
+     * @throws \DmLab\TypesenseCore\Exception\TypesenseException on a failed write
      */
     public function regenerate(): void
     {

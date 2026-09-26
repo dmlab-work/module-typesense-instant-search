@@ -1,5 +1,5 @@
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Typesense instant search — a drop-in replacement for Magento's stock `quickSearch`
  * widget. It EXTENDS the stock widget (`Magento_Search/js/form-mini`) rather than
@@ -26,7 +26,7 @@ define([
 ], function ($, priceUtils) {
     'use strict';
 
-    var CONFIG_ELEMENT_ID = 'magedevgroup-typesense-instant-search-config';
+    var CONFIG_ELEMENT_ID = 'dmlab-typesense-instant-search-config';
 
     /**
      * Read and parse the view-model config emitted into the page, or null when the

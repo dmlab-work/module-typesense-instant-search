@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <magedevgroup_typesense>
+        <dmlab_typesense>
             <instant_search>
                 <enabled>0</enabled>
                 <mode>proxy</mode>
@@ -19,6 +19,6 @@
                 <display_price>1</display_price>
                 <display_sku>0</display_sku>
             </instant_search>
-        </magedevgroup_typesense>
+        </dmlab_typesense>
     </default>
 </config>

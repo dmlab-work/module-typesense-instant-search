@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Emits the instant-search config for the storefront widget. The view model fails
  * closed (empty string when the widget must not run), so nothing is printed and the
@@ -12,12 +12,12 @@
  * @var \Magento\Framework\View\Element\Template $block
  */
 
-/** @var \MageDevGroup\TypesenseInstantSearch\ViewModel\InstantSearchConfig $viewModel */
+/** @var \DmLab\TypesenseInstantSearch\ViewModel\InstantSearchConfig $viewModel */
 $viewModel = $block->getViewModel();
 $json = $viewModel->getJsonConfig();
 ?>
 <?php if ($json !== '') : ?>
-<script type="application/json" id="magedevgroup-typesense-instant-search-config">
+<script type="application/json" id="dmlab-typesense-instant-search-config">
     <?= /* @noEscape */ $json ?>
 </script>
 <?php endif; ?>

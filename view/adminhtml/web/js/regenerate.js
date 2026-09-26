@@ -1,5 +1,5 @@
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Admin config "Regenerate key" button handler, kept out of the page as a static
  * component so no inline `<script>` is emitted. Bound via `data-mage-init`; the

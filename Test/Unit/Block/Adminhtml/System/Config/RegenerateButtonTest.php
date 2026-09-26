@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Test\Unit\Block\Adminhtml\System\Config;
+namespace DmLab\TypesenseInstantSearch\Test\Unit\Block\Adminhtml\System\Config;
 
-use MageDevGroup\TypesenseInstantSearch\Block\Adminhtml\System\Config\RegenerateButton;
+use DmLab\TypesenseInstantSearch\Block\Adminhtml\System\Config\RegenerateButton;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\AbstractBlock;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +36,7 @@ class RegenerateButtonTest extends TestCase
         self::assertStringContainsString('Regenerate key', $html);
         // The handler is a static component bound via data-mage-init, not an inline script.
         self::assertStringContainsString('data-mage-init', $html);
-        self::assertStringContainsString('MageDevGroup_TypesenseInstantSearch/js/regenerate', $html);
+        self::assertStringContainsString('DmLab_TypesenseInstantSearch/js/regenerate', $html);
         self::assertStringNotContainsString('<script', $html);
     }
 }

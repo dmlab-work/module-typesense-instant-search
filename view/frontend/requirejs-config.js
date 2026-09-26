@@ -1,5 +1,5 @@
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  *
  * Replace Magento's stock `quickSearch` widget in place. Magento_Search binds
  * `quickSearch` to `#search` via `data-mage-init`; remapping the alias swaps our
@@ -10,8 +10,8 @@
 var config = {
     map: {
         '*': {
-            quickSearch: 'MageDevGroup_TypesenseInstantSearch/js/instant-search',
-            'Magento_Search/form-mini': 'MageDevGroup_TypesenseInstantSearch/js/instant-search'
+            quickSearch: 'DmLab_TypesenseInstantSearch/js/instant-search',
+            'Magento_Search/form-mini': 'DmLab_TypesenseInstantSearch/js/instant-search'
         }
     }
 };

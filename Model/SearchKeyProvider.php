@@ -1,12 +1,12 @@
 <?php
 /**
- * Copyright © MageDevGroup. All rights reserved.
+ * Copyright © DMLab. All rights reserved.
  */
 declare(strict_types=1);
 
-namespace MageDevGroup\TypesenseInstantSearch\Model;
+namespace DmLab\TypesenseInstantSearch\Model;
 
-use MageDevGroup\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
+use DmLab\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 
@@ -17,12 +17,12 @@ use Magento\Framework\Encryption\EncryptorInterface;
  * Fails closed: when no parent key is configured, {@see self::getScopedSearchKey()} returns null
  * so the widget config is not emitted and the storefront falls back to native search. The parent
  * key is auto-provisioned in direct mode by
- * {@see \MageDevGroup\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner}, not pasted.
+ * {@see \DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner}, not pasted.
  */
 class SearchKeyProvider
 {
     /** Parent search-only key, stored encrypted; auto-provisioned by the SearchKeyProvisioner. */
-    public const XML_PATH_SEARCH_API_KEY = 'magedevgroup_typesense/instant_search/search_api_key';
+    public const XML_PATH_SEARCH_API_KEY = 'dmlab_typesense/instant_search/search_api_key';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
