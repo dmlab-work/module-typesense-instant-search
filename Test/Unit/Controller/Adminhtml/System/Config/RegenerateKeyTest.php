@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -8,6 +9,7 @@ namespace DmLab\TypesenseInstantSearch\Test\Unit\Controller\Adminhtml\System\Con
 
 use DmLab\TypesenseInstantSearch\Controller\Adminhtml\System\Config\RegenerateKey;
 use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
+use DmLab\TypesenseInstantSearch\Test\Unit\Doubles\MarkingPhraseRenderer;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -34,6 +36,7 @@ class RegenerateKeyTest extends TestCase
 
     protected function setUp(): void
     {
+        MarkingPhraseRenderer::install();
         $this->resultJsonFactory = $this->createMock(JsonFactory::class);
         $this->result = $this->createMock(Json::class);
         $this->result->method('setData')->willReturnSelf();
@@ -47,19 +50,31 @@ class RegenerateKeyTest extends TestCase
         $this->set('logger', $this->logger);
     }
 
-    public function testReProvisionsAndReportsSuccess(): void
+    protected function tearDown(): void
     {
-        $this->provisioner->expects(self::once())->method('regenerate');
+        MarkingPhraseRenderer::uninstall();
+    }
+
+    public function testUsesTheTypesenseConfigSectionAclResource(): void
+    {
+        self::assertSame('DmLab_TypesenseIndexer::config', RegenerateKey::ADMIN_RESOURCE);
+    }
+
+    public function testRegeneratesAllStoresAndReportsTranslatedSuccess(): void
+    {
+        $this->provisioner->expects(self::once())->method('regenerate')->with(null);
 
         $this->result->expects(self::once())
             ->method('setData')
-            ->with(self::callback(static fn (array $data): bool =>
-                $data['success'] === true && str_contains($data['message'], 'regenerated')));
+            ->with([
+                'success' => true,
+                'message' => 'tr(Search-only keys regenerated for all store views.)',
+            ]);
 
         self::assertSame($this->result, $this->controller->execute());
     }
 
-    public function testReportsFailureWithoutThrowingWhenProvisioningFails(): void
+    public function testReportsTranslatedFailureWithoutThrowingWhenProvisioningFails(): void
     {
         $this->provisioner->method('regenerate')
             ->willThrowException(new \RuntimeException('admin key missing'));
@@ -67,8 +82,11 @@ class RegenerateKeyTest extends TestCase
 
         $this->result->expects(self::once())
             ->method('setData')
-            ->with(self::callback(static fn (array $data): bool =>
-                $data['success'] === false && str_contains($data['message'], 'admin key missing')));
+            ->with([
+                'success' => false,
+                'message' => 'tr(Could not regenerate the search-only keys: admin key missing '
+                    . 'Check the Typesense admin API key.)',
+            ]);
 
         self::assertSame($this->result, $this->controller->execute());
     }

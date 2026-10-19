@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -51,10 +52,53 @@ class InstantSearchWidgetWiringTest extends TestCase
         $js = (string)file_get_contents(
             self::moduleRoot() . '/view/frontend/web/js/instant-search.js'
         );
+        $request = (string)file_get_contents(
+            self::moduleRoot() . '/view/frontend/web/js/instant-search/request.js'
+        );
 
-        // Direct browser → Typesense search, authenticated with the derived scoped key.
-        self::assertStringContainsString('/documents/search', $js);
-        self::assertStringContainsString('X-TYPESENSE-API-KEY', $js);
+        // Direct browser → Typesense search, key as a query param so the GET needs no preflight.
+        self::assertMatchesRegularExpression(
+            '/[\'"]DmLab_TypesenseInstantSearch\/js\/instant-search\/request[\'"]/',
+            $js
+        );
+        self::assertStringContainsString('/documents/search', $request);
+        self::assertStringContainsString('x-typesense-api-key', $request);
+        self::assertStringNotContainsString('X-TYPESENSE-API-KEY', $js);
+        self::assertStringNotContainsString('headers', $js);
+    }
+
+    public function testWidgetAbortsRequestsAndFallsBackToTheProxy(): void
+    {
+        $js = (string)file_get_contents(
+            self::moduleRoot() . '/view/frontend/web/js/instant-search.js'
+        );
+
+        self::assertMatchesRegularExpression('/new AbortController\(\)/', $js);
+        self::assertMatchesRegularExpression('/REQUEST_TIMEOUT_MS\s*=\s*2000/', $js);
+        self::assertMatchesRegularExpression('/request\.nextMode\(/', $js);
+    }
+
+    public function testWidgetWiresSelectionAriaAndTranslations(): void
+    {
+        $js = (string)file_get_contents(
+            self::moduleRoot() . '/view/frontend/web/js/instant-search.js'
+        );
+
+        self::assertMatchesRegularExpression('/[\'"]mage\/translate[\'"]/', $js);
+        self::assertMatchesRegularExpression(
+            '/[\'"]DmLab_TypesenseInstantSearch\/js\/instant-search\/selection[\'"]/',
+            $js
+        );
+        self::assertStringContainsString('selection.shouldNavigate(', $js);
+        self::assertStringContainsString('aria-selected="false"', $js);
+        self::assertMatchesRegularExpression('/LISTBOX_ID\s*=\s*[\'"]dmlab-qs-listbox[\'"]/', $js);
+        self::assertStringContainsString("\$t('Search suggestions')", $js);
+        self::assertStringContainsString('role="status"', $js);
+        self::assertStringContainsString('dmlab-qs-status', $js);
+        self::assertStringContainsString("\$t('%1 suggestions')", $js);
+        self::assertStringContainsString("\$t('No suggestions')", $js);
+        self::assertMatchesRegularExpression('/\.on\(\s*[\'"]mouseleave[\'"]/', $js);
+        self::assertMatchesRegularExpression('/_onKeyDown\s*:\s*function/', $js);
     }
 
     public function testWidgetRendersTheConfiguredDisplayFields(): void
@@ -62,10 +106,14 @@ class InstantSearchWidgetWiringTest extends TestCase
         $js = (string)file_get_contents(
             self::moduleRoot() . '/view/frontend/web/js/instant-search.js'
         );
+        $mapper = (string)file_get_contents(
+            self::moduleRoot() . '/view/frontend/web/js/instant-search/hit-mapper.js'
+        );
 
         // The admin display-field toggles (title/image/price/sku) must reach the row render,
-        // not be dead config: the widget reads `displayFields` and emits a cell per enabled field.
-        self::assertStringContainsString('displayFields', $js);
+        // not be dead config: the hit mapper reads `displayFields`, the widget emits a cell per field.
+        self::assertStringContainsString('displayFields', $mapper);
+        self::assertStringContainsString('DmLab_TypesenseInstantSearch/js/instant-search/hit-mapper', $js);
         self::assertStringContainsString('qs-option-image', $js);
         self::assertStringContainsString('qs-option-price', $js);
         self::assertStringContainsString('qs-option-sku', $js);

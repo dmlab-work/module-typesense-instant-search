@@ -2,6 +2,7 @@
 <!--
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
  * Emit the instant-search config the mapped widget reads. This ADDS a block that
  * outputs the InstantSearchConfig view model's JSON — it does NOT override the stock

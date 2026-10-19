@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="store_add">
+        <observer name="dmlab_typesense_instant_search_ensure_keys"
+                  instance="DmLab\TypesenseInstantSearch\Observer\EnsureStoreSearchKeys"/>
+    </event>
+    <event name="store_edit">
+        <observer name="dmlab_typesense_instant_search_ensure_keys"
+                  instance="DmLab\TypesenseInstantSearch\Observer\EnsureStoreSearchKeys"/>
+    </event>
+    <event name="website_save_commit_after">
+        <observer name="dmlab_typesense_instant_search_ensure_keys"
+                  instance="DmLab\TypesenseInstantSearch\Observer\EnsureStoreSearchKeys"/>
+    </event>
+</config>

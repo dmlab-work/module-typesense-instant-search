@@ -1,23 +1,20 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\TypesenseInstantSearch\Model\Key;
 
+use DmLab\TypesenseCore\Exception\TypesenseException;
 use DmLab\TypesenseCore\Model\Client\TypesenseClient;
 
 /**
- * Creates the parent search-only key — the one write in this module's key machinery.
+ * Typesense `/keys` API calls made with the admin key: create a parent search-only key, list, delete by id.
  *
- * This is the create half, driven by {@see \DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner}:
- * a `POST /keys` through core's generic client using the admin key, minting a key restricted to
- * `documents:search` on the given collections. The returned value is stored encrypted; from then on
- * the request path only *derives* from it ({@see ScopedKeyDeriver}) — no admin key, no API call.
- *
- * Kept apart from derivation on purpose: an earlier draft had the request path create-and-cache,
- * which minted a fresh Typesense key every cache TTL and needed the admin key at render time.
+ * Only ever called from provisioning (config save, store events, CLI) — never on the request path,
+ * which only derives from the stored parent ({@see ScopedKeyDeriver}).
  *
  * @api
  */
@@ -26,8 +23,8 @@ class SearchKeyManager
     /** The only action a storefront key needs; it can search, nothing else. */
     private const SEARCH_ACTION = 'documents:search';
 
-    /** Human-readable label stored on the Typesense side so the key is identifiable in `GET /keys`. */
-    private const KEY_DESCRIPTION = 'DmLab instant search (storefront search-only)';
+    /** `sprintf` format of every key description this module writes: role, then collection. */
+    public const DESCRIPTION_FORMAT = 'dmlab-instant-search:%s:%s';
 
     /**
      * @param TypesenseClient $client core's generic client, called here with the admin key
@@ -38,49 +35,57 @@ class SearchKeyManager
     }
 
     /**
-     * Create the parent search-only key restricted to the given collections.
-     *
-     * A single `POST /keys` write; returns the full key value, shown by Typesense exactly once,
-     * for the caller to store encrypted.
+     * Create a parent search-only key restricted to the given collections.
      *
      * @param string[] $collections collection names (or alias names) the key may search
-     * @return string the parent key value
-     * @throws \DmLab\TypesenseCore\Exception\TypesenseException on a failed write
-     * @throws \RuntimeException when the response carries no key value
+     * @param string $description label shown in `GET /keys`
+     * @return array{id:int,value:string} the key id and its full value (returned by Typesense only here)
+     * @throws TypesenseException on a failed write
+     * @throws \RuntimeException when the response carries no id or value
      */
-    public function createParentSearchKey(array $collections): string
+    public function createParentSearchKey(array $collections, string $description): array
     {
         $response = $this->client->request('POST', '/keys', [
-            'description' => self::KEY_DESCRIPTION,
+            'description' => $description,
             'actions' => [self::SEARCH_ACTION],
             'collections' => array_values($collections),
         ]);
 
+        $id = $response['id'] ?? null;
         $value = $response['value'] ?? null;
-        if (!is_string($value) || $value === '') {
-            throw new \RuntimeException('Typesense did not return a key value for the created search-only key.');
+        if (!is_int($id) || !is_string($value) || $value === '') {
+            throw new \RuntimeException('Typesense did not return an id and value for the created search-only key.');
         }
 
-        return $value;
+        return ['id' => $id, 'value' => $value];
     }
 
     /**
-     * Delete every parent key this module previously created (matched by {@see self::KEY_DESCRIPTION},
-     * so only this module's keys are touched).
+     * All keys on the cluster, as `GET /keys` lists them (`id`, `description`, `value_prefix`, …).
      *
-     * Regeneration calls this before minting a fresh key, so the old parent is actually retired on
-     * the Typesense side: every scoped key derived from it — including any that leaked into page
-     * source — stops working at once, instead of remaining valid forever.
-     *
-     * @throws \DmLab\TypesenseCore\Exception\TypesenseException on a failed read or delete
+     * @return array<int,array<string,mixed>>
+     * @throws TypesenseException on a failed read
      */
-    public function deleteExistingSearchKeys(): void
+    public function listKeys(): array
     {
-        $response = $this->client->request('GET', '/keys');
+        $keys = $this->client->request('GET', '/keys')['keys'] ?? [];
 
-        foreach ($response['keys'] ?? [] as $key) {
-            if (($key['description'] ?? null) === self::KEY_DESCRIPTION && isset($key['id'])) {
-                $this->client->request('DELETE', '/keys/' . (int)$key['id']);
+        return is_array($keys) ? array_values(array_filter($keys, 'is_array')) : [];
+    }
+
+    /**
+     * Delete one key by id; an already-missing key (404) counts as deleted.
+     *
+     * @param int $id Typesense key id
+     * @throws TypesenseException on any other failure
+     */
+    public function deleteKey(int $id): void
+    {
+        try {
+            $this->client->request('DELETE', '/keys/' . $id);
+        } catch (TypesenseException $e) {
+            if ($e->getStatusCode() !== 404) {
+                throw $e;
             }
         }
     }

@@ -1,35 +1,37 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\TypesenseInstantSearch\Observer;
 
+use DmLab\TypesenseInstantSearch\Model\Config;
 use DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Phrase;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Provisions the search-only key when the Instant Search config section is saved.
+ * Ensures every store's parent keys when the Typesense config section is saved.
  *
- * Bound to `admin_system_config_changed_section_dmlab_typesense`, so enabling direct mode
- * mints the key with no command to run ({@see SearchKeyProvisioner::ensure()} is idempotent, a
- * no-op in proxy mode or once a key exists).
+ * Skipped while instant search is disabled in every store: the section also holds indexer settings.
  *
- * Failure surfaces at save time: if the admin key is missing (or Typesense rejects the write) the
- * provisioner throws, and this rethrows a {@see LocalizedException} so the admin sees the reason on
- * the config screen rather than a silent, persistent notice.
+ * Failures are rethrown as a {@see LocalizedException}, so the admin sees the reason on the config screen.
  */
 class ProvisionSearchKey implements ObserverInterface
 {
     /**
      * @param SearchKeyProvisioner $provisioner
+     * @param Config $config
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        private readonly SearchKeyProvisioner $provisioner
+        private readonly SearchKeyProvisioner $provisioner,
+        private readonly Config $config,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
@@ -40,17 +42,34 @@ class ProvisionSearchKey implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        if (!$this->isEnabledInAnyStore()) {
+            return;
+        }
+
         try {
             $this->provisioner->ensure();
         } catch (\Throwable $e) {
             throw new LocalizedException(
-                new Phrase(
-                    'Direct mode needs a Typesense search-only key but it could not be created: %1 '
-                    . 'Set the Typesense admin API key under Catalog Search, then save again.',
-                    [$e->getMessage()]
+                __(
+                    'Instant search keys could not be created: %1 Set the Typesense admin API key and save again.',
+                    $e->getMessage()
                 ),
                 $e
             );
         }
+    }
+
+    /**
+     * Whether instant search is enabled in at least one store view.
+     */
+    private function isEnabledInAnyStore(): bool
+    {
+        foreach ($this->storeManager->getStores() as $store) {
+            if ($this->config->isEnabled((int)$store->getId())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

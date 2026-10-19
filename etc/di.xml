@@ -2,20 +2,63 @@
 <!--
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <!--
-        The parent search-only key is a credential: keep it out of app/etc/config.php by marking
-        its path sensitive, so config:show / config dump never leak it.
+        The per-store parent keys are credentials and their ids/collections must stay paired with them in the DB:
+        mark all sensitive so a config dump never leaks a key or pins stale state in app/etc/config.php.
+        The legacy 0.1.x key stays listed until LegacyKeyMigrator is removed.
     -->
     <type name="Magento\Config\Model\Config\TypePool">
         <arguments>
             <argument name="sensitive" xsi:type="array">
+                <item name="dmlab_typesense/instant_search/public_key" xsi:type="string">1</item>
+                <item name="dmlab_typesense/instant_search/proxy_key" xsi:type="string">1</item>
+                <item name="dmlab_typesense/instant_search/public_key_id" xsi:type="string">1</item>
+                <item name="dmlab_typesense/instant_search/proxy_key_id" xsi:type="string">1</item>
+                <item name="dmlab_typesense/instant_search/public_key_collection" xsi:type="string">1</item>
+                <item name="dmlab_typesense/instant_search/proxy_key_collection" xsi:type="string">1</item>
                 <item name="dmlab_typesense/instant_search/search_api_key" xsi:type="string">1</item>
             </argument>
         </arguments>
+    </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="dmlab_typesense_search_key_ensure" xsi:type="object">
+                    DmLab\TypesenseInstantSearch\Console\Command\SearchKeyEnsureCommand
+                </item>
+                <item name="dmlab_typesense_search_key_regenerate" xsi:type="object">
+                    DmLab\TypesenseInstantSearch\Console\Command\SearchKeyRegenerateCommand
+                </item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Proxy: CommandList builds every command on each bin/magento run. -->
+    <type name="DmLab\TypesenseInstantSearch\Console\Command\AbstractSearchKeyCommand">
+        <arguments>
+            <argument name="provisioner" xsi:type="object">
+                DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner\Proxy
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Key ids read before the resource delete, revoked after it succeeds. -->
+    <type name="Magento\Store\Model\ResourceModel\Store">
+        <plugin name="dmlab_typesense_instant_search_revoke_keys"
+                type="DmLab\TypesenseInstantSearch\Plugin\RevokeSearchKeysOnDelete"/>
+    </type>
+    <type name="Magento\Store\Model\ResourceModel\Group">
+        <plugin name="dmlab_typesense_instant_search_revoke_keys"
+                type="DmLab\TypesenseInstantSearch\Plugin\RevokeSearchKeysOnDelete"/>
+    </type>
+    <type name="Magento\Store\Model\ResourceModel\Website">
+        <plugin name="dmlab_typesense_instant_search_revoke_keys"
+                type="DmLab\TypesenseInstantSearch\Plugin\RevokeSearchKeysOnDelete"/>
     </type>
 
     <!--

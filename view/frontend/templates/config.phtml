@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
  * Emits the instant-search config for the storefront widget. The view model fails
  * closed (empty string when the widget must not run), so nothing is printed and the
@@ -16,7 +17,7 @@
 $viewModel = $block->getViewModel();
 $json = $viewModel->getJsonConfig();
 ?>
-<?php if ($json !== '') : ?>
+<?php if ($json !== ''): ?>
 <script type="application/json" id="dmlab-typesense-instant-search-config">
     <?= /* @noEscape */ $json ?>
 </script>

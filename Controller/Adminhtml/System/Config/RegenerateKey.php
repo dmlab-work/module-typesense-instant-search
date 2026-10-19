@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -17,14 +18,14 @@ use Psr\Log\LoggerInterface;
 /**
  * Adminhtml endpoint behind the "Regenerate key" button.
  *
- * Re-provisions the search-only key ({@see SearchKeyProvisioner::regenerate()}) and answers JSON the
+ * Rotates every store's keys ({@see SearchKeyProvisioner::regenerate()}) and answers JSON the
  * button uses to report success or the failure reason. A missing admin key or a Typesense error is
- * caught and returned as a message, never a 500 or a raw engine error.
+ * caught and returned as a translated message, never a 500.
  */
 class RegenerateKey extends Action implements HttpPostActionInterface
 {
-    /** Same ACL resource as the config screen the button lives on. */
-    public const ADMIN_RESOURCE = 'Magento_Config::config';
+    /** Same ACL resource as the config section the button lives on. */
+    public const ADMIN_RESOURCE = 'DmLab_TypesenseIndexer::config';
 
     /**
      * @param Context $context
@@ -42,7 +43,7 @@ class RegenerateKey extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Re-provision the key and report the outcome.
+     * Rotate all stores' keys and report the outcome.
      */
     public function execute(): Json
     {
@@ -55,14 +56,16 @@ class RegenerateKey extends Action implements HttpPostActionInterface
 
             return $result->setData([
                 'success' => false,
-                'message' => 'Could not regenerate the search-only key: ' . $e->getMessage()
-                    . ' Check that the Typesense admin API key is set under Catalog Search.',
+                'message' => (string)__(
+                    'Could not regenerate the search-only keys: %1 Check the Typesense admin API key.',
+                    $e->getMessage()
+                ),
             ]);
         }
 
         return $result->setData([
             'success' => true,
-            'message' => 'Search-only key regenerated.',
+            'message' => (string)__('Search-only keys regenerated for all store views.'),
         ]);
     }
 }

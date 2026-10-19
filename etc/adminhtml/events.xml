@@ -2,13 +2,18 @@
 <!--
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-    <!-- Enabling direct mode auto-provisions the search-only key on save — no CLI. -->
+    <!-- Saving the section ensures every store's instant-search keys. -->
     <event name="admin_system_config_changed_section_dmlab_typesense">
         <observer name="dmlab_typesense_instant_search_provision_key"
                   instance="DmLab\TypesenseInstantSearch\Observer\ProvisionSearchKey"/>
+    </event>
+    <event name="admin_system_config_changed_section_catalog">
+        <observer name="dmlab_typesense_instant_search_index_prefix"
+                  instance="DmLab\TypesenseInstantSearch\Observer\EnsureKeysOnIndexPrefixChange"/>
     </event>
 </config>

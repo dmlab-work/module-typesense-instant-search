@@ -1,18 +1,20 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\TypesenseInstantSearch\Test\Unit\ViewModel;
 
-use DmLab\TypesenseIndexer\Api\FieldNameResolverInterface;
 use DmLab\TypesenseIndexer\Api\IndexNameResolverInterface;
 use DmLab\TypesenseIndexer\Api\SearchableFieldsProviderInterface;
 use DmLab\TypesenseInstantSearch\Model\Config;
 use DmLab\TypesenseInstantSearch\Model\Config\Source\Mode;
+use DmLab\TypesenseInstantSearch\Model\Price\GuestPriceDisplayProvider;
 use DmLab\TypesenseInstantSearch\Model\SearchKeyProvider;
 use DmLab\TypesenseInstantSearch\ViewModel\InstantSearchConfig;
+use Magento\Catalog\Model\Product\Image\UrlBuilder as ImageUrlBuilder;
 use Magento\Catalog\Model\Product\Media\ConfigInterface as MediaConfig;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\CatalogSearch\Model\Indexer\Fulltext;
@@ -20,16 +22,22 @@ use Magento\Customer\Model\Context as CustomerContext;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\Locale\FormatInterface;
+use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 #[AllowMockObjectsWithoutExpectations]
 class InstantSearchConfigTest extends TestCase
 {
+    private const ENDPOINT = 'https://magento.loc/typesense/ajax/search';
+
+    private const IMAGE_TEMPLATE = 'https://magento.loc/media/catalog/product/cache/abc123/__DMLAB_IMAGE__';
+
     /** @var Config&MockObject */
     private $config;
 
@@ -45,17 +53,11 @@ class InstantSearchConfigTest extends TestCase
     /** @var StoreManagerInterface&MockObject */
     private $storeManager;
 
-    /** @var FieldNameResolverInterface&MockObject */
-    private $fieldNameResolver;
-
     /** @var MediaConfig&MockObject */
     private $mediaConfig;
 
     /** @var Visibility&MockObject */
     private $productVisibility;
-
-    /** @var HttpContext&MockObject */
-    private $httpContext;
 
     /** @var UrlInterface&MockObject */
     private $urlBuilder;
@@ -66,47 +68,77 @@ class InstantSearchConfigTest extends TestCase
     /** @var ScopeConfigInterface&MockObject */
     private $scopeConfig;
 
+    /** @var DateTime&MockObject */
+    private $dateTime;
+
+    /** @var GuestPriceDisplayProvider&MockObject */
+    private $guestPriceDisplay;
+
+    /** @var ImageUrlBuilder&MockObject */
+    private $imageUrlBuilder;
+
+    private int|string|null $customerGroup = null;
+
+    private int $now = 1_000_000;
+
+    private int|string|null $fpcTtl = 3600;
+
     private InstantSearchConfig $viewModel;
+
+    /** The current store's proxy parent key. */
+    private ?string $proxyParentKey = 'proxy-parent';
 
     protected function setUp(): void
     {
         $this->config = $this->createMock(Config::class);
         $this->searchKeyProvider = $this->createMock(SearchKeyProvider::class);
+        $this->searchKeyProvider->method('getParentKey')->willReturnCallback(
+            fn (int $storeId, string $role): ?string => $role === 'proxy' ? $this->proxyParentKey : null
+        );
         $this->searchableFields = $this->createMock(SearchableFieldsProviderInterface::class);
         $this->indexNameResolver = $this->createMock(IndexNameResolverInterface::class);
+        $this->indexNameResolver->method('getPublicAliasName')->willReturn('typesense_catalogsearch_fulltext_1_public');
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
-        $this->fieldNameResolver = $this->createMock(FieldNameResolverInterface::class);
         $this->mediaConfig = $this->createMock(MediaConfig::class);
+        $this->mediaConfig->method('getBaseMediaUrl')->willReturn('https://magento.loc/media/catalog/product');
         $this->productVisibility = $this->createMock(Visibility::class);
         $this->productVisibility->method('getVisibleInSearchIds')->willReturn([3, 4]);
 
         $store = $this->createMock(Store::class);
         $store->method('getId')->willReturn(1);
-        $store->method('getWebsiteId')->willReturn(1);
         $store->method('getCurrentCurrencyCode')->willReturn('USD');
         $store->method('getBaseUrl')->willReturn('https://magento.loc/');
         $this->storeManager->method('getStore')->willReturn($store);
 
-        // Price field named per scope, mirroring the indexer's `price_<group>_<website>` naming.
-        $this->fieldNameResolver->method('resolve')->with('price', self::anything())->willReturnCallback(
-            static fn (string $code, array $context): string =>
-                'price_' . (int)$context['customerGroupId'] . '_' . (int)$context['websiteId']
-        );
-        $this->mediaConfig->method('getBaseMediaUrl')->willReturn('https://magento.loc/media/catalog/product');
-
-        // Default to the guest group; individual tests override the HTTP-context group.
-        $this->httpContext = $this->createMock(HttpContext::class);
-        $this->httpContext->method('getValue')->willReturn(null);
+        $httpContext = $this->createMock(HttpContext::class);
+        $httpContext->method('getValue')->with(CustomerContext::CONTEXT_GROUP)
+            ->willReturnCallback(fn () => $this->customerGroup);
 
         $this->urlBuilder = $this->createMock(UrlInterface::class);
+        $this->urlBuilder->method('getUrl')->with('typesense/ajax/search')->willReturn(self::ENDPOINT);
 
         $this->localeFormat = $this->createMock(FormatInterface::class);
         $this->localeFormat->method('getPriceFormat')->willReturn(['pattern' => '$%s', 'precision' => 2]);
 
         $this->scopeConfig = $this->createMock(ScopeConfigInterface::class);
-        $this->scopeConfig->method('getValue')
-            ->with('catalog/seo/product_url_suffix', self::anything(), self::anything())
-            ->willReturn('.html');
+        $this->scopeConfig->method('getValue')->willReturnCallback(
+            fn (string $path) => match ($path) {
+                'catalog/seo/product_url_suffix' => '.html',
+                'system/full_page_cache/ttl' => $this->fpcTtl,
+                default => null,
+            }
+        );
+
+        $this->dateTime = $this->createMock(DateTime::class);
+        $this->dateTime->method('gmtTimestamp')->willReturnCallback(fn (): int => $this->now);
+
+        $this->guestPriceDisplay = $this->createMock(GuestPriceDisplayProvider::class);
+        $this->guestPriceDisplay->method('get')->with($store)
+            ->willReturn(['rate' => 0.92, 'taxFactors' => [0 => 1.0, 2 => 1.0825]]);
+
+        $this->imageUrlBuilder = $this->createMock(ImageUrlBuilder::class);
+        $this->imageUrlBuilder->method('getUrl')->with('/__DMLAB_IMAGE__', 'product_thumbnail_image')
+            ->willReturn(self::IMAGE_TEMPLATE);
 
         $this->viewModel = new InstantSearchConfig(
             $this->config,
@@ -114,283 +146,272 @@ class InstantSearchConfigTest extends TestCase
             $this->searchableFields,
             $this->indexNameResolver,
             $this->storeManager,
-            $this->fieldNameResolver,
             $this->mediaConfig,
             $this->productVisibility,
-            $this->httpContext,
+            $httpContext,
             $this->urlBuilder,
             $this->localeFormat,
-            $this->scopeConfig
+            $this->scopeConfig,
+            $this->dateTime,
+            $this->guestPriceDisplay,
+            $this->imageUrlBuilder
         );
     }
 
-    public function testEmitsFullConfigWhenEnabledAndKeyed(): void
+    public function testGuestDirectModeQueriesThePublicAliasWithThePublicKey(): void
     {
-        $this->givenEnabledAndKeyed();
+        $this->givenDirect(['name' => 5]);
+        $this->searchKeyProvider->method('derive')->willReturn('derived-scoped-key');
 
         $config = $this->viewModel->getConfig();
 
         self::assertSame('direct', $config['mode']);
         self::assertSame('search.typesense.example', $config['host']);
         self::assertSame('derived-scoped-key', $config['apiKey']);
-        self::assertSame('typesense_catalogsearch_fulltext_1', $config['collection']);
-        self::assertSame('price_0_1', $config['priceField']);
+        self::assertSame('typesense_catalogsearch_fulltext_1_public', $config['collection']);
+        self::assertSame('price', $config['priceField']);
         self::assertSame(['pattern' => '$%s', 'precision' => 2], $config['priceFormat']);
+        self::assertSame(0.92, $config['currencyRate']);
+        self::assertSame([0 => 1.0, 2 => 1.0825], $config['taxFactors']);
         self::assertSame('https://magento.loc/media/catalog/product', $config['mediaUrl']);
+        self::assertSame(self::IMAGE_TEMPLATE, $config['imageUrlTemplate']);
+        self::assertSame(['title' => true, 'sku' => false], $config['displayFields']);
+        self::assertSame(self::ENDPOINT, $config['endpoint']);
         self::assertSame(7, $config['minQueryLength']);
         self::assertSame(9, $config['resultLimit']);
         self::assertSame(150, $config['debounceMs']);
-        self::assertSame(['title' => true, 'sku' => false], $config['displayFields']);
         self::assertSame('https://magento.loc/', $config['baseUrl']);
         self::assertSame('.html', $config['productUrlSuffix']);
     }
 
-    public function testQueryByAndWeightsComeFromTheIndexerContractNotReDerived(): void
+    public function testResolvesThePublicAliasForTheFulltextIndexerAndCurrentStore(): void
     {
-        $this->givenEnabled();
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-        $this->searchKeyProvider->method('getScopedSearchKey')->willReturn('derived-scoped-key');
+        $this->givenDirect(['name' => 5]);
+        $this->searchKeyProvider->method('derive')->willReturn('k');
+        $resolver = $this->createMock(IndexNameResolverInterface::class);
+        $resolver->expects(self::once())->method('getPublicAliasName')->with(Fulltext::INDEXER_ID, 1)
+            ->willReturn('a_pub');
+        $resolver->expects(self::never())->method('getAliasName');
+        $this->indexNameResolver = $resolver;
 
-        // The provider is asked for the current store's fields; the view model must not invent them.
-        $this->searchableFields->expects(self::once())->method('get')->with(1)->willReturn(
-            ['name' => 5, 'sku' => 3, 'description' => 1]
-        );
+        self::assertSame('a_pub', $this->rebuild()->getConfig()['collection']);
+    }
+
+    public function testQueryByIsTheIndexerFieldsIntersectedWithThePublicSetInProviderOrder(): void
+    {
+        $this->givenDirect(['description' => 1, 'sku' => 3, 'color_value' => 2, 'name' => 5, 'brand' => 4,
+            'short_description' => 1]);
+        $this->searchKeyProvider->method('derive')->willReturn('k');
 
         $config = $this->viewModel->getConfig();
 
-        self::assertSame('name,sku,description', $config['queryBy']);
-        self::assertSame('5,3,1', $config['queryByWeights']);
+        self::assertSame('sku,color_value,name,short_description', $config['queryBy']);
+        self::assertSame('3,2,5,1', $config['queryByWeights']);
     }
 
-    public function testResolvesAliasForTheFulltextIndexerAndCurrentStore(): void
+    public function testDerivesThePublicKeyWithEmbeddedParams(): void
     {
-        $this->givenEnabled();
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-        $this->searchKeyProvider->method('getScopedSearchKey')->willReturn('derived-scoped-key');
+        $this->givenDirect(['name' => 5, 'description' => 1]);
 
-        $this->indexNameResolver->expects(self::once())
-            ->method('getAliasName')
-            ->with(Fulltext::INDEXER_ID, 1)
-            ->willReturn('typesense_catalogsearch_fulltext_1');
-
-        self::assertSame('typesense_catalogsearch_fulltext_1', $this->viewModel->getConfig()['collection']);
-    }
-
-    public function testDerivesAScopedKeyNeverExposingTheParent(): void
-    {
-        $this->givenEnabled();
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-
-        // The request path only derives — no admin key, no parent key reaches the browser config.
         $this->searchKeyProvider->expects(self::once())
-            ->method('getScopedSearchKey')
-            ->willReturn('derived-scoped-key');
-
-        self::assertSame('derived-scoped-key', $this->viewModel->getConfig()['apiKey']);
-    }
-
-    public function testRestrictsTheDerivedKeyToQueryAndDisplayFields(): void
-    {
-        $this->givenEnabled();
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-        $this->searchableFields->method('get')->willReturn(['name' => 5, 'description' => 1]);
-
-        // The public key must be scoped to only the fields the widget reads, so backend-only
-        // attributes (e.g. `cost`) in the fat documents can never be pulled from the browser.
-        $this->searchKeyProvider->expects(self::once())
-            ->method('getScopedSearchKey')
-            ->with([
-                'include_fields' => 'name,description,title,sku,image,price_0_1',
+            ->method('derive')
+            ->with(1, 'public', [
+                'include_fields' => 'name,sku,url_key,thumbnail,price,tax_class_id',
                 'filter_by' => 'visibility:[3,4] && status:=1',
                 'per_page' => 9,
+                // bucket 997200 (floor(1e6 / 3600) * 3600) + 2 * 3600 + 3 d grace
+                'expires_at' => 997200 + 7200 + 259200,
             ])
             ->willReturn('derived-scoped-key');
 
         self::assertSame('derived-scoped-key', $this->viewModel->getConfig()['apiKey']);
     }
 
-    public function testCapsResultsInTheDerivedKeyToTheConfiguredLimit(): void
+    public function testExpiryIsStableWithinAnFpcBucketAndAdvancesAfterIt(): void
     {
-        $this->givenEnabled();
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
+        $this->givenDirect(['name' => 5]);
+        $expiries = [];
+        $this->searchKeyProvider->method('derive')->willReturnCallback(
+            static function (int $storeId, string $role, array $params) use (&$expiries): string {
+                $expiries[] = $params['expires_at'];
 
-        // The limit is embedded in the key so a holder of the public scoped key cannot request more
-        // hits per call than the widget renders (Typesense enforces embedded params) — no enumeration.
-        $this->searchKeyProvider->expects(self::once())
-            ->method('getScopedSearchKey')
-            ->with(self::callback(static fn (array $params): bool => ($params['per_page'] ?? null) === 9))
-            ->willReturn('derived-scoped-key');
-
-        self::assertSame('derived-scoped-key', $this->viewModel->getConfig()['apiKey']);
-    }
-
-    public function testConstrainsTheDerivedKeyToSearchVisibleProducts(): void
-    {
-        $this->givenEnabled();
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-
-        // The indexer indexes catalog-only products too; the key must filter them out server-side
-        // so the browser cannot see products native quick search hides.
-        $this->searchKeyProvider->expects(self::once())
-            ->method('getScopedSearchKey')
-            ->with(self::callback(static fn (array $params): bool =>
-                ($params['filter_by'] ?? null) === 'visibility:[3,4] && status:=1'))
-            ->willReturn('derived-scoped-key');
-
-        self::assertSame('derived-scoped-key', $this->viewModel->getConfig()['apiKey']);
-    }
-
-    public function testPriceFieldFollowsTheCurrentCustomerGroupFromHttpContext(): void
-    {
-        $this->givenEnabled();
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-
-        // A logged-in group-2 customer (the FPC varies on this context value) must see the group's
-        // price field, both in the emitted config and in the key's include_fields scope.
-        $httpContext = $this->createMock(HttpContext::class);
-        $httpContext->method('getValue')->with(CustomerContext::CONTEXT_GROUP)->willReturn(2);
-
-        $viewModel = new InstantSearchConfig(
-            $this->config,
-            $this->searchKeyProvider,
-            $this->searchableFields,
-            $this->indexNameResolver,
-            $this->storeManager,
-            $this->fieldNameResolver,
-            $this->mediaConfig,
-            $this->productVisibility,
-            $httpContext,
-            $this->urlBuilder,
-            $this->localeFormat,
-            $this->scopeConfig
+                return 'key-' . $params['expires_at'];
+            }
         );
 
-        $this->searchKeyProvider->expects(self::once())
-            ->method('getScopedSearchKey')
-            ->with(self::callback(static fn (array $params): bool =>
-                str_contains($params['include_fields'] ?? '', 'price_2_1')))
-            ->willReturn('derived-scoped-key');
+        foreach ([997200, 1_000_000, 1_000_799, 1_000_800] as $now) {
+            $this->now = $now;
+            $this->viewModel->getConfig();
+        }
 
-        self::assertSame('price_2_1', $viewModel->getConfig()['priceField']);
+        self::assertSame($expiries[0], $expiries[1]);
+        self::assertSame($expiries[0], $expiries[2]);
+        self::assertSame($expiries[0] + 3600, $expiries[3]);
+    }
+
+    public function testExpiryFallsBackToTheDefaultFpcTtl(): void
+    {
+        $this->givenDirect(['name' => 5]);
+        $this->fpcTtl = null;
+        $this->now = 100_000;
+
+        $this->searchKeyProvider->expects(self::once())
+            ->method('derive')
+            ->with(1, 'public', self::callback(static fn (array $params): bool =>
+                $params['expires_at'] === 86400 + 2 * 86400 + 259200))
+            ->willReturn('k');
+
+        $this->viewModel->getConfig();
+    }
+
+    public function testExplicitGuestGroupGetsDirectMode(): void
+    {
+        $this->givenDirect(['name' => 5]);
+        $this->customerGroup = '0';
+        $this->searchKeyProvider->method('derive')->willReturn('k');
+
+        self::assertSame('direct', $this->viewModel->getConfig()['mode']);
+    }
+
+    public function testLoggedInCustomerInDirectModeGetsProxyConfigOnly(): void
+    {
+        $this->givenDirect(['name' => 5]);
+        $this->customerGroup = 1;
+        $this->searchKeyProvider->expects(self::never())->method('derive');
+        $this->guestPriceDisplay->expects(self::never())->method('get');
+
+        $this->assertProxyOnly($this->viewModel->getConfig());
+    }
+
+    /**
+     * @return array<string,array{0:?string,1:array<string,int>,2:?string}>
+     */
+    public static function unusableDirectProvider(): array
+    {
+        return [
+            'no public key' => ['search.typesense.example', ['name' => 5], null],
+            'no public host' => [null, ['name' => 5], 'k'],
+            'no public searchable field' => ['search.typesense.example', ['description' => 1, 'brand' => 2], 'k'],
+        ];
+    }
+
+    /**
+     * @param array<string,int> $fields
+     */
+    #[DataProvider('unusableDirectProvider')]
+    public function testUnusableDirectModeFallsBackToProxy(?string $host, array $fields, ?string $key): void
+    {
+        $this->givenDirect($fields, $host);
+        $this->searchKeyProvider->method('derive')->willReturn($key);
+
+        $this->assertProxyOnly($this->viewModel->getConfig());
+    }
+
+    public function testProxyModeNeverEmitsAKey(): void
+    {
+        $this->givenEnabled(Mode::PROXY);
+        $this->searchableFields->method('get')->willReturn(['name' => 5]);
+        $this->config->method('getPublicHost')->willReturn('search.typesense.example');
+        $this->searchKeyProvider->expects(self::never())->method('derive');
+        $this->guestPriceDisplay->expects(self::never())->method('get');
+
+        $config = $this->viewModel->getConfig();
+
+        $this->assertProxyOnly($config);
+        self::assertSame(7, $config['minQueryLength']);
+        self::assertSame(9, $config['resultLimit']);
+        self::assertSame(150, $config['debounceMs']);
     }
 
     public function testJsonConfigIsValidJsonOfTheConfig(): void
     {
-        $this->givenEnabledAndKeyed();
+        $this->givenDirect(['name' => 5]);
+        $this->searchKeyProvider->method('derive')->willReturn('k');
 
-        $json = $this->viewModel->getJsonConfig();
-
-        self::assertSame($this->viewModel->getConfig(), json_decode($json, true));
+        // assertEquals: JSON drops the zero fraction of tax factors like 1.0.
+        self::assertEquals($this->viewModel->getConfig(), json_decode($this->viewModel->getJsonConfig(), true));
     }
 
     public function testDisabledEmitsNothing(): void
     {
-        $this->config->method('isEnabled')->willReturn(false);
+        $this->config->expects(self::atLeastOnce())->method('isEnabled')->with(1)->willReturn(false);
 
         self::assertNull($this->viewModel->getConfig());
         self::assertSame('', $this->viewModel->getJsonConfig());
     }
 
-    public function testDirectModeMissingPublicHostEmitsNothing(): void
+    public function testMissingProxyKeyEmitsNothing(): void
     {
-        // In direct mode the browser needs a host to reach; without one the widget must not run.
-        $this->config->method('isEnabled')->willReturn(true);
-        $this->config->method('isDirectMode')->willReturn(true);
-        $this->config->method('getMode')->willReturn(Mode::DIRECT);
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-        $this->config->method('getPublicHost')->willReturn(null);
+        $this->givenEnabled(Mode::PROXY);
+        $this->searchableFields->method('get')->willReturn(['name' => 10]);
+        $this->proxyParentKey = null;
 
         self::assertNull($this->viewModel->getConfig());
-    }
-
-    public function testDirectModeMissingParentKeyFailsClosed(): void
-    {
-        $this->config->method('isEnabled')->willReturn(true);
-        $this->config->method('isDirectMode')->willReturn(true);
-        $this->config->method('getMode')->willReturn(Mode::DIRECT);
-        $this->config->method('getPublicHost')->willReturn('search.typesense.example');
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-        $this->indexNameResolver->method('getAliasName')->willReturn('alias');
-        $this->searchKeyProvider->method('getScopedSearchKey')->willReturn(null);
-
-        self::assertNull($this->viewModel->getConfig());
-        self::assertSame('', $this->viewModel->getJsonConfig());
     }
 
     public function testNoSearchableFieldsEmitsNothing(): void
     {
-        $this->config->method('isEnabled')->willReturn(true);
+        $this->givenEnabled(Mode::DIRECT);
         $this->searchableFields->method('get')->willReturn([]);
 
         self::assertNull($this->viewModel->getConfig());
     }
 
-    public function testProxyModeEmitsEndpointAndNoKeyOrHost(): void
+    /**
+     * @param array<string,mixed>|null $config
+     */
+    private function assertProxyOnly(?array $config): void
     {
-        $this->config->method('isEnabled')->willReturn(true);
-        $this->config->method('getMode')->willReturn(Mode::PROXY);
-        $this->config->method('isDirectMode')->willReturn(false);
-        $this->config->method('getMinQueryLength')->willReturn(4);
-        $this->config->method('getResultLimit')->willReturn(6);
-        $this->config->method('getDebounceMs')->willReturn(120);
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-        $this->urlBuilder->method('getUrl')->with('typesense/ajax/search')
-            ->willReturn('https://magento.loc/typesense/ajax/search');
-
-        // Proxy is same-origin: no key/host derivation happens at all.
-        $this->searchKeyProvider->expects(self::never())->method('getScopedSearchKey');
-
-        $config = $this->viewModel->getConfig();
-
+        self::assertNotNull($config);
         self::assertSame('proxy', $config['mode']);
-        self::assertSame('https://magento.loc/typesense/ajax/search', $config['endpoint']);
-        self::assertSame(4, $config['minQueryLength']);
-        self::assertSame(6, $config['resultLimit']);
-        self::assertSame(120, $config['debounceMs']);
-        // Nothing that would expose Typesense or a key reaches the page.
-        self::assertArrayNotHasKey('host', $config);
-        self::assertArrayNotHasKey('apiKey', $config);
-        self::assertArrayNotHasKey('collection', $config);
-        self::assertArrayNotHasKey('queryBy', $config);
+        self::assertSame(self::ENDPOINT, $config['endpoint']);
+        foreach (['host', 'apiKey', 'collection', 'queryBy', 'priceField', 'currencyRate', 'taxFactors', 'imageUrlTemplate'] as $key) {
+            self::assertArrayNotHasKey($key, $config);
+        }
     }
 
-    public function testDirectModeShapeCarriesScopedKeyButNeverAdminOrParentKey(): void
+    /**
+     * @param array<string,int> $fields
+     */
+    private function givenDirect(array $fields, ?string $host = 'search.typesense.example'): void
     {
-        $this->givenEnabledAndKeyed();
-
-        $config = $this->viewModel->getConfig();
-
-        self::assertSame('direct', $config['mode']);
-        self::assertSame('derived-scoped-key', $config['apiKey']);
-        // Only the derived scoped key is ever emitted — the module never surfaces the admin or
-        // parent key, so no config value should equal a raw key name.
-        self::assertArrayNotHasKey('parentKey', $config);
-        self::assertArrayNotHasKey('adminKey', $config);
-        self::assertNotContains('endpoint', array_keys($config));
+        $this->givenEnabled(Mode::DIRECT);
+        $this->searchableFields->method('get')->with(1)->willReturn($fields);
+        $this->config->method('getPublicHost')->willReturn($host);
     }
 
-    private function givenEnabledAndKeyed(): void
+    private function givenEnabled(string $mode): void
     {
-        $this->givenEnabled();
-        $this->searchableFields->method('get')->willReturn(['name' => 5]);
-        $this->indexNameResolver->method('getAliasName')->willReturn('typesense_catalogsearch_fulltext_1');
-        $this->searchKeyProvider->method('getScopedSearchKey')->willReturn('derived-scoped-key');
+        // Store-scoped settings must be read for the current store (id 1).
+        $this->config->method('isEnabled')->with(1)->willReturn(true);
+        $this->config->method('getMode')->willReturn($mode);
+        $this->config->method('isDirectMode')->willReturn($mode === Mode::DIRECT);
+        $this->config->method('getMinQueryLength')->with(1)->willReturn(7);
+        $this->config->method('getResultLimit')->with(1)->willReturn(9);
+        $this->config->method('getDebounceMs')->with(1)->willReturn(150);
+        $this->config->method('getDisplayFields')->with(1)->willReturn(['title' => true, 'sku' => false]);
     }
 
-    private function givenEnabled(): void
+    private function rebuild(): InstantSearchConfig
     {
-        // The full-config assertions below all exercise direct mode; proxy mode is covered separately.
-        $this->config->method('isEnabled')->willReturn(true);
-        $this->config->method('getMode')->willReturn(Mode::DIRECT);
-        $this->config->method('isDirectMode')->willReturn(true);
-        $this->config->method('getPublicHost')->willReturn('search.typesense.example');
-        $this->config->method('getMinQueryLength')->willReturn(7);
-        $this->config->method('getResultLimit')->willReturn(9);
-        $this->config->method('getDebounceMs')->willReturn(150);
-        $this->config->method('getDisplayFields')->willReturn(['title' => true, 'sku' => false]);
+        $httpContext = $this->createMock(HttpContext::class);
+        $httpContext->method('getValue')->willReturn(null);
+
+        return new InstantSearchConfig(
+            $this->config,
+            $this->searchKeyProvider,
+            $this->searchableFields,
+            $this->indexNameResolver,
+            $this->storeManager,
+            $this->mediaConfig,
+            $this->productVisibility,
+            $httpContext,
+            $this->urlBuilder,
+            $this->localeFormat,
+            $this->scopeConfig,
+            $this->dateTime,
+            $this->guestPriceDisplay,
+            $this->imageUrlBuilder
+        );
     }
 }

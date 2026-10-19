@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -10,6 +11,8 @@ use DmLab\TypesenseInstantSearch\Model\Config;
 use DmLab\TypesenseInstantSearch\Model\Csp\TypesensePolicyCollector;
 use Magento\Csp\Api\Data\PolicyInterface;
 use Magento\Csp\Model\Policy\FetchPolicy;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 class TypesensePolicyCollectorTest extends TestCase
@@ -23,7 +26,23 @@ class TypesensePolicyCollectorTest extends TestCase
     protected function setUp(): void
     {
         $this->config = $this->createStub(Config::class);
-        $this->collector = new TypesensePolicyCollector($this->config);
+        $store = $this->createStub(StoreInterface::class);
+        $store->method('getId')->willReturn(4);
+        $storeManager = $this->createStub(StoreManagerInterface::class);
+        $storeManager->method('getStore')->willReturn($store);
+        $this->collector = new TypesensePolicyCollector($this->config, $storeManager);
+    }
+
+    public function testEnabledFlagIsReadForTheCurrentStore(): void
+    {
+        $config = $this->createMock(Config::class);
+        $config->expects(self::once())->method('isEnabled')->with(4)->willReturn(false);
+        $store = $this->createStub(StoreInterface::class);
+        $store->method('getId')->willReturn(4);
+        $storeManager = $this->createStub(StoreManagerInterface::class);
+        $storeManager->method('getStore')->willReturn($store);
+
+        self::assertSame([], (new TypesensePolicyCollector($config, $storeManager))->collect([]));
     }
 
     public function testAddsConfiguredHostToConnectSrc(): void

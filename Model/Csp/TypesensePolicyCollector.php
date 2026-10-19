@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -9,6 +10,7 @@ namespace DmLab\TypesenseInstantSearch\Model\Csp;
 use DmLab\TypesenseInstantSearch\Model\Config;
 use Magento\Csp\Api\PolicyCollectorInterface;
 use Magento\Csp\Model\Policy\FetchPolicy;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Whitelists the configured public Typesense host in the `connect-src` CSP directive.
@@ -29,9 +31,11 @@ class TypesensePolicyCollector implements PolicyCollectorInterface
 
     /**
      * @param Config $config
+     * @param StoreManagerInterface $storeManager resolves the store whose enabled flag applies
      */
     public function __construct(
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly StoreManagerInterface $storeManager
     ) {
     }
 
@@ -40,7 +44,9 @@ class TypesensePolicyCollector implements PolicyCollectorInterface
      */
     public function collect(array $defaultPolicies = []): array
     {
-        if (!$this->config->isEnabled() || !$this->config->isDirectMode()) {
+        if (!$this->config->isEnabled((int)$this->storeManager->getStore()->getId())
+            || !$this->config->isDirectMode()
+        ) {
             return $defaultPolicies;
         }
 

@@ -12,14 +12,17 @@ Depends on `dmlab/module-typesense-indexer` and `-core`.
 
 **Query Mode** picks how the browser reaches Typesense:
 
-| Mode | Path | Typesense exposed? | Key on page | Needs CORS/CSP |
+| Mode | Who | Path | Collection | Key on page |
 |---|---|---|---|---|
-| **Proxy** *(default)* | browser → Magento AJAX endpoint → Typesense (server-side) | No, same-origin | none | no |
-| **Direct** | browser → Typesense with a derived scoped read-only key | Yes, over HTTPS | scoped read-only | yes |
+| **Proxy** *(default)* | everyone | browser → Magento AJAX endpoint → Typesense | main alias | none |
+| **Direct** | NOT LOGGED IN visitors only | browser → Typesense over HTTPS | `<mainAlias>_public` | derived, read-only |
 
-Pick **proxy** to keep Typesense on the internal network (nothing leaves the server, no CORS, no key
-on the page). Pick **direct** for the lowest latency when you can expose Typesense over HTTPS. Both
-render the identical dropdown from the same fat-document fields — only the fetch target differs.
+- **Proxy** keeps Typesense on the internal network. It queries server-side with a key derived from the
+  store's proxy parent key — never the admin key — using a 1 s timeout, one attempt and a 30 s
+  "Typesense down" flag, so a hung cluster cannot exhaust PHP workers.
+- **Direct** gives the lowest latency. Guests query the public collection, which holds only the NOT
+  LOGGED IN price, so no group prices leak. Logged-in customers always use the proxy. Any direct
+  failure (network, non-2xx, 2 s timeout) switches the widget to the proxy.
 
 ## Install & configure
 
@@ -29,31 +32,58 @@ bin/magento module:enable DmLab_TypesenseInstantSearch
 bin/magento setup:upgrade
 ```
 
+Upgrading from 0.1.x: run `bin/magento dmlab:typesense:search-key:ensure` after `setup:upgrade` — it
+creates the per-store keys and revokes the 0.1.x key. Until then the widget stays off.
+
 Admin → *Stores → Configuration → DMLab Typesense → Instant Search*:
 
-| Field | Default | Notes |
-|---|---|---|
-| Enable Instant Search | No | Off → native search |
-| Query Mode | Proxy | Proxy keeps Typesense private; Direct queries it from the browser |
-| Search-Only Key | — | *Direct only.* Read-only status + Regenerate button — auto-provisioned |
-| Public Typesense Host | — | *Direct only.* HTTPS host the browser connects to (`search.example.com[:port]`) |
-| Minimum Query Length | 3 | |
-| Result Limit | 5 | Suggestions shown |
-| Debounce (ms) | 200 | |
-| Show Title / Image / Price / SKU | Yes / Yes / Yes / No | |
+| Field | Default | Scope | Notes |
+|---|---|---|---|
+| Enable Instant Search | No | store view | Off → native search |
+| Query Mode | Proxy | global | |
+| Search-Only Key | — | global | Per-store key status + Regenerate button |
+| Public Typesense Host | — | global | *Direct only.* HTTPS host the browser connects to (`search.example.com[:port]`) |
+| Minimum Query Length | 3 | store view | |
+| Result Limit | 5 | store view | Suggestions shown |
+| Debounce (ms) | 200 | store view | |
+| Show Title / Image / Price / SKU | Yes / Yes / Yes / No | store view | |
 
-The direct-only fields appear only when direct mode is selected — switching modes needs no code and
-no manual key step. **Direct mode** additionally requires a publicly reachable Typesense host running
-with CORS enabled (`--enable-cors`).
+**Direct mode** needs a public HTTPS Typesense host started with `--enable-cors`. The key travels as a
+query parameter, so requests are CORS simple requests — no preflight.
 
-## Key model — only a derived key reaches the browser
+## Key model — only derived keys leave the server
 
-No CLI, no paste box. When direct mode is saved and no parent key exists, the module calls Typesense
-`POST /keys` with the admin key (server-side), mints a parent key restricted to `documents:search` on
-the store's aliases, and stores it **encrypted**. Each request then derives a **local HMAC** scoped
-to the current store's alias — no API call, no admin key — and only that scoped key reaches the
-browser. If the admin key is missing at save time, provisioning fails with a clear error; if the
-parent key is absent the widget fails closed and the storefront falls back to native search.
+- Each store view gets its own **parent keys**, stored encrypted at store scope together with their
+  Typesense key ids: a **proxy** key (always) and a **public** key (direct mode only), both limited to
+  `documents:search` on that store's alias.
+- Keys are created on config save and on store/website save (for store views with Instant Search
+  enabled), or by CLI: `bin/magento dmlab:typesense:search-key:ensure|regenerate [--store=<code>]`.
+- Changing the index prefix rotates the keys on save; after `config:set`, run `:ensure`.
+- Deleting a store view, store or website revokes its keys by id.
+- **Regenerate** creates new keys, saves them, flushes the FPC, then revokes the old keys **by id** —
+  other installs sharing the cluster are never touched. A failed create keeps the old key.
+- Requests use locally derived HMAC keys that expire: page keys are bucketed by the FPC TTL, so cached
+  pages stay byte-identical; proxy keys live 5 minutes.
+- The single 0.1.x key is revoked on the first ensure (matched by description and value prefix).
+- No admin key → saving fails with a clear error. No proxy key → the widget is not rendered and the
+  storefront keeps native search. No public key → guests use the proxy.
+
+## Prices, images, rate guard
+
+- Prices follow the store currency and the catalog tax display setting in both modes.
+- Thumbnails are resized cache URLs of the `product_thumbnail_image` view.xml image, not originals.
+- The proxy rate-limits per client IP (30 requests / 10 s). `X-Forwarded-For` is honoured only from
+  trusted proxies; list yours in `app/etc/di.xml` or a module `di.xml`:
+
+```xml
+<type name="DmLab\TypesenseInstantSearch\Model\ClientIp">
+    <arguments>
+        <argument name="trustedProxies" xsi:type="array">
+            <item name="lb" xsi:type="string">10.0.0.10</item>
+        </argument>
+    </arguments>
+</type>
+```
 
 ## How it replaces the stock autocomplete
 
@@ -66,10 +96,16 @@ native search form.
 In **direct mode only**, `Model\Csp\TypesensePolicyCollector` adds the configured host to `connect-src`
 at runtime (it is admin config, so a static whitelist cannot carry it); in proxy mode it is a no-op.
 
+## Compatibility
+
+**Luma/RequireJS themes only — Hyvä is not supported.** The widget binds through RequireJS
+`quickSearch`; on Hyvä its native search stays and this module's widget is inert.
+
 ## Requirements
 
-Magento 2.4.x · PHP 8.3–8.5 · a catalog already indexed into Typesense · (direct mode) a public,
-CORS-enabled Typesense host.
+Magento 2.4.9+ · PHP 8.3–8.5 · `dmlab/module-typesense-core` and `-indexer` 0.2.x (the indexer maintains
+`<mainAlias>_public`) ·
+(direct mode) a public, CORS-enabled Typesense host.
 
 ## License
 

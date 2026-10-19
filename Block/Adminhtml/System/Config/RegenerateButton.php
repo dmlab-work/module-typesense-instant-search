@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -57,6 +58,7 @@ class RegenerateButton extends Field
     {
         $url = $this->escapeHtmlAttr($url);
         $formKey = $this->escapeHtmlAttr($formKey);
+        $label = $this->escapeHtml((string)__('Regenerate key'));
         $init = $this->escapeHtmlAttr(
             '{"DmLab_TypesenseInstantSearch/js/regenerate": {}}'
         );
@@ -65,7 +67,7 @@ class RegenerateButton extends Field
 <button type="button" class="action-default"
         data-mage-init="{$init}"
         data-regenerate-url="{$url}"
-        data-form-key="{$formKey}">Regenerate key</button>
+        data-form-key="{$formKey}">{$label}</button>
 HTML;
     }
 }

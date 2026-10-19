@@ -1,77 +1,56 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
 namespace DmLab\TypesenseInstantSearch\Model;
 
 use DmLab\TypesenseInstantSearch\Model\Key\ScopedKeyDeriver;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Encryption\EncryptorInterface;
+use DmLab\TypesenseInstantSearch\Model\Key\StoreKeyRepository;
 
 /**
- * The request-path source of the key the browser gets: reads the encrypted parent key and
- * returns a *derived* scoped key. Never the admin key, never the parent key, never an API call.
+ * Request-path source of storefront keys: reads a store's parent key and derives a scoped key from it.
+ * Never the admin key, never an API call.
  *
- * Fails closed: when no parent key is configured, {@see self::getScopedSearchKey()} returns null
- * so the widget config is not emitted and the storefront falls back to native search. The parent
- * key is auto-provisioned in direct mode by
- * {@see \DmLab\TypesenseInstantSearch\Model\Key\SearchKeyProvisioner}, not pasted.
+ * Fails closed: returns null when the store has no key for the role.
  */
 class SearchKeyProvider
 {
-    /** Parent search-only key, stored encrypted; auto-provisioned by the SearchKeyProvisioner. */
-    public const XML_PATH_SEARCH_API_KEY = 'dmlab_typesense/instant_search/search_api_key';
-
     /**
-     * @param ScopeConfigInterface $scopeConfig
-     * @param EncryptorInterface $encryptor
+     * @param StoreKeyRepository $keyRepository
      * @param ScopedKeyDeriver $deriver
      */
     public function __construct(
-        private readonly ScopeConfigInterface $scopeConfig,
-        private readonly EncryptorInterface $encryptor,
+        private readonly StoreKeyRepository $keyRepository,
         private readonly ScopedKeyDeriver $deriver
     ) {
     }
 
     /**
-     * Whether a parent search-only key is configured.
+     * The store's parent key value for a role, or null when not provisioned.
      *
-     * Drives fail-closed gating and the admin key-status field; involves no derivation.
+     * @param int $storeId
+     * @param string $role {@see StoreKeyRepository::ROLE_PUBLIC} or {@see StoreKeyRepository::ROLE_PROXY}
      */
-    public function hasParentKey(): bool
+    public function getParentKey(int $storeId, string $role): ?string
     {
-        return $this->readParentKey() !== null;
+        return $this->keyRepository->get($storeId, $role)['value'] ?? null;
     }
 
     /**
-     * A scoped search-only key derived from the parent, or null when no parent key is set.
+     * A scoped key derived from the store's parent key for a role, or null when not provisioned.
      *
-     * The derivation is a pure local HMAC ({@see ScopedKeyDeriver}) — no admin key and no
-     * Typesense call ever reach this path.
-     *
+     * @param int $storeId
+     * @param string $role
      * @param array<string,mixed> $params embedded search parameters Typesense enforces on the key
+     * @throws \JsonException when the params cannot be encoded
      */
-    public function getScopedSearchKey(array $params = []): ?string
+    public function derive(int $storeId, string $role, array $params): ?string
     {
-        $parentKey = $this->readParentKey();
-        if ($parentKey === null) {
-            return null;
-        }
+        $parentKey = $this->getParentKey($storeId, $role);
 
-        return $this->deriver->derive($parentKey, $params);
-    }
-
-    /**
-     * Read and decrypt the parent key, or null when unset.
-     */
-    private function readParentKey(): ?string
-    {
-        $encrypted = $this->scopeConfig->getValue(self::XML_PATH_SEARCH_API_KEY);
-        $value = is_string($encrypted) && $encrypted !== '' ? trim($this->encryptor->decrypt($encrypted)) : '';
-
-        return $value === '' ? null : $value;
+        return $parentKey === null ? null : $this->deriver->derive($parentKey, $params);
     }
 }

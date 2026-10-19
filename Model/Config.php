@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -8,6 +9,7 @@ namespace DmLab\TypesenseInstantSearch\Model;
 
 use DmLab\TypesenseInstantSearch\Model\Config\Source\Mode;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * Typed reader over this module's storefront instant-search settings.
@@ -15,7 +17,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
  * Core's {@see \DmLab\TypesenseCore\Model\Config} owns the connection (server host,
  * admin key, timeouts); this reader owns only what the browser widget needs. The public host
  * is deliberately a separate path from the server host — the browser may reach Typesense at a
- * different address than PHP does.
+ * different address than PHP does. Mode and public host are default-scope only (keys and CSP are
+ * per install); the widget settings are store-scoped and default to the current store when no id is passed.
  */
 class Config
 {
@@ -63,10 +66,12 @@ class Config
 
     /**
      * Whether the storefront widget is switched on.
+     *
+     * @param int|null $storeId
      */
-    public function isEnabled(): bool
+    public function isEnabled(?int $storeId = null): bool
     {
-        return $this->scopeConfig->isSetFlag(self::XML_PATH_ENABLED);
+        return $this->scopeConfig->isSetFlag(self::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
     /**
@@ -108,51 +113,68 @@ class Config
 
     /**
      * Characters that must be typed before a request is sent.
+     *
+     * @param int|null $storeId
      */
-    public function getMinQueryLength(): int
+    public function getMinQueryLength(?int $storeId = null): int
     {
-        return $this->readPositiveInt(self::XML_PATH_MIN_QUERY_LENGTH, self::DEFAULT_MIN_QUERY_LENGTH);
+        return $this->readPositiveInt(self::XML_PATH_MIN_QUERY_LENGTH, self::DEFAULT_MIN_QUERY_LENGTH, $storeId);
     }
 
     /**
      * Maximum number of suggestions shown in the dropdown.
+     *
+     * @param int|null $storeId
      */
-    public function getResultLimit(): int
+    public function getResultLimit(?int $storeId = null): int
     {
-        return $this->readPositiveInt(self::XML_PATH_RESULT_LIMIT, self::DEFAULT_RESULT_LIMIT);
+        return $this->readPositiveInt(self::XML_PATH_RESULT_LIMIT, self::DEFAULT_RESULT_LIMIT, $storeId);
     }
 
     /**
      * Milliseconds to wait after the last keystroke before querying.
+     *
+     * @param int|null $storeId
      */
-    public function getDebounceMs(): int
+    public function getDebounceMs(?int $storeId = null): int
     {
-        return $this->readNonNegativeInt(self::XML_PATH_DEBOUNCE_MS, self::DEFAULT_DEBOUNCE_MS);
+        return $this->readNonNegativeInt(self::XML_PATH_DEBOUNCE_MS, self::DEFAULT_DEBOUNCE_MS, $storeId);
     }
 
     /**
      * The display-field toggles as a field ⇒ bool map, in row-render order.
      *
+     * @param int|null $storeId
      * @return array<string, bool>
      */
-    public function getDisplayFields(): array
+    public function getDisplayFields(?int $storeId = null): array
     {
-        return [
-            'title' => $this->scopeConfig->isSetFlag(self::XML_PATH_DISPLAY_TITLE),
-            'image' => $this->scopeConfig->isSetFlag(self::XML_PATH_DISPLAY_IMAGE),
-            'price' => $this->scopeConfig->isSetFlag(self::XML_PATH_DISPLAY_PRICE),
-            'sku' => $this->scopeConfig->isSetFlag(self::XML_PATH_DISPLAY_SKU),
+        $paths = [
+            'title' => self::XML_PATH_DISPLAY_TITLE,
+            'image' => self::XML_PATH_DISPLAY_IMAGE,
+            'price' => self::XML_PATH_DISPLAY_PRICE,
+            'sku' => self::XML_PATH_DISPLAY_SKU,
         ];
+
+        return array_map(
+            fn (string $path): bool => $this->scopeConfig->isSetFlag($path, ScopeInterface::SCOPE_STORE, $storeId),
+            $paths
+        );
     }
 
     /**
      * Read a config value as a trimmed non-empty string, or null.
      *
      * @param string $path
+     * @param string $scope
+     * @param int|null $storeId
      */
-    private function readNonEmptyString(string $path): ?string
-    {
-        $value = $this->scopeConfig->getValue($path);
+    private function readNonEmptyString(
+        string $path,
+        string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        ?int $storeId = null
+    ): ?string {
+        $value = $this->scopeConfig->getValue($path, $scope, $storeId);
         $value = is_scalar($value) ? trim((string)$value) : '';
 
         return $value === '' ? null : $value;
@@ -165,10 +187,11 @@ class Config
      *
      * @param string $path
      * @param int $default
+     * @param int|null $storeId
      */
-    private function readPositiveInt(string $path, int $default): int
+    private function readPositiveInt(string $path, int $default, ?int $storeId): int
     {
-        $value = $this->readNonNegativeInt($path, $default);
+        $value = $this->readNonNegativeInt($path, $default, $storeId);
 
         return $value < 1 ? $default : $value;
     }
@@ -178,10 +201,11 @@ class Config
      *
      * @param string $path
      * @param int $default
+     * @param int|null $storeId
      */
-    private function readNonNegativeInt(string $path, int $default): int
+    private function readNonNegativeInt(string $path, int $default, ?int $storeId): int
     {
-        $raw = $this->readNonEmptyString($path);
+        $raw = $this->readNonEmptyString($path, ScopeInterface::SCOPE_STORE, $storeId);
         if ($raw === null || !preg_match('/^\d+$/', $raw)) {
             return $default;
         }

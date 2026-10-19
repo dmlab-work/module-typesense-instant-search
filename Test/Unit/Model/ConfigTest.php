@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  */
 declare(strict_types=1);
 
@@ -8,6 +9,7 @@ namespace DmLab\TypesenseInstantSearch\Test\Unit\Model;
 
 use DmLab\TypesenseInstantSearch\Model\Config;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 use PHPUnit\Framework\TestCase;
 
 class ConfigTest extends TestCase
@@ -209,5 +211,69 @@ class ConfigTest extends TestCase
             ['title' => true, 'image' => true, 'price' => false, 'sku' => true],
             $this->config->getDisplayFields()
         );
+    }
+
+    public function testStoreScopedTogglesReadTheGivenStore(): void
+    {
+        $paths = [];
+        $this->scopeConfig->expects(self::exactly(5))->method('isSetFlag')->willReturnCallback(
+            function (string $path, string $scope, ?int $storeId) use (&$paths): bool {
+                $paths[$path] = [$scope, $storeId];
+
+                return true;
+            }
+        );
+
+        self::assertTrue($this->config->isEnabled(3));
+        $this->config->getDisplayFields(3);
+
+        $expected = array_fill_keys([
+            Config::XML_PATH_ENABLED,
+            Config::XML_PATH_DISPLAY_TITLE,
+            Config::XML_PATH_DISPLAY_IMAGE,
+            Config::XML_PATH_DISPLAY_PRICE,
+            Config::XML_PATH_DISPLAY_SKU,
+        ], [ScopeInterface::SCOPE_STORE, 3]);
+        self::assertSame($expected, $paths);
+    }
+
+    public function testStoreScopedNumbersReadTheGivenStore(): void
+    {
+        $this->scopeConfig->expects(self::exactly(3))->method('getValue')->willReturnCallback(
+            static fn (string $path, string $scope, ?int $storeId): ?string =>
+                $scope === ScopeInterface::SCOPE_STORE && $storeId === 2 ? '11' : null
+        );
+
+        self::assertSame(11, $this->config->getMinQueryLength(2));
+        self::assertSame(11, $this->config->getResultLimit(2));
+        self::assertSame(11, $this->config->getDebounceMs(2));
+    }
+
+    public function testStoreScopedGettersDefaultToTheCurrentStore(): void
+    {
+        $this->scopeConfig->expects(self::once())->method('getValue')
+            ->with(Config::XML_PATH_RESULT_LIMIT, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn('6');
+        $this->scopeConfig->expects(self::once())->method('isSetFlag')
+            ->with(Config::XML_PATH_ENABLED, ScopeInterface::SCOPE_STORE, null)
+            ->willReturn(true);
+
+        self::assertSame(6, $this->config->getResultLimit());
+        self::assertTrue($this->config->isEnabled());
+    }
+
+    public function testModeAndPublicHostStayAtTheDefaultScope(): void
+    {
+        $this->scopeConfig->expects(self::exactly(2))->method('getValue')->willReturnCallback(
+            static fn (string $path, string $scope, ?int $storeId): ?string => match (true) {
+                $scope !== ScopeConfigInterface::SCOPE_TYPE_DEFAULT || $storeId !== null => null,
+                $path === Config::XML_PATH_MODE => 'direct',
+                $path === Config::XML_PATH_PUBLIC_HOST => 'search.example.com',
+                default => null,
+            }
+        );
+
+        self::assertSame('direct', $this->config->getMode());
+        self::assertSame('search.example.com', $this->config->getPublicHost());
     }
 }

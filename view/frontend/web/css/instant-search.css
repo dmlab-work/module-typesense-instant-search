@@ -1,9 +1,9 @@
 /**
  * Copyright © DMLab. All rights reserved.
+ * Licensed under the Open Software License version 3.0 (OSL-3.0). See LICENSE.
  *
- * Constrain the instant-search dropdown rows. The `image` display field renders the raw
- * catalog media URL (a full-size original — this read-only module cannot mint resized cache
- * URLs), so a fixed thumbnail box is required or the image blows out the dropdown layout.
+ * Constrain the instant-search dropdown rows. Images are `product_thumbnail_image` resized
+ * cache URLs whose size follows the theme's view.xml, so a fixed box keeps rows uniform.
  */
 #search_autocomplete .qs-option-image {
     display: inline-block;
@@ -21,4 +21,17 @@
 #search_autocomplete .qs-option-sku,
 #search_autocomplete .qs-option-price {
     margin-left: 10px;
+}
+
+.dmlab-qs-status,
+#search_autocomplete .dmlab-qs-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
