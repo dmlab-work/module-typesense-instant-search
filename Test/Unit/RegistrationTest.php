@@ -110,4 +110,69 @@ class RegistrationTest extends TestCase
             $composer['autoload']['psr-4']
         );
     }
+
+    public function testComposerSupportsMagento247AndPhp82(): void
+    {
+        $composer = $this->composer();
+        $require = $composer['require'];
+
+        self::assertSame('~8.2.0||~8.3.0||~8.4.0||~8.5.0', $require['php']);
+        self::assertSame('^2.0||^3.0', $require['psr/log']);
+        self::assertSame('^11.5||^12.5', $composer['require-dev']['phpunit/phpunit']);
+
+        // Magento 2.4.7 package versions (Mage-OS mirror metapackage).
+        $magento = array_filter(
+            $require,
+            static fn (string $package): bool => str_starts_with($package, 'magento/'),
+            ARRAY_FILTER_USE_KEY
+        );
+        self::assertEquals(
+            [
+                'magento/framework' => '^103.0.7',
+                'magento/module-backend' => '^102.0.7',
+                'magento/module-catalog' => '^104.0.7',
+                'magento/module-catalog-search' => '^102.0.7',
+                'magento/module-customer' => '^103.0.7',
+                'magento/module-search' => '^101.1.7',
+                'magento/module-csp' => '^100.4.6',
+                'magento/module-store' => '^101.1.7',
+                'magento/module-config' => '^101.2.7',
+                'magento/module-tax' => '^100.4.7',
+                'magento/module-directory' => '^100.4.7',
+                'magento/module-ui' => '^101.2.7',
+            ],
+            $magento
+        );
+    }
+
+    public function testComposerHasDiscoveryMetadata(): void
+    {
+        $composer = $this->composer();
+        $repo = 'https://github.com/dmlab-work/module-typesense-instant-search';
+
+        self::assertContains('magento2', $composer['keywords']);
+        self::assertContains('typesense', $composer['keywords']);
+        self::assertSame($repo, $composer['homepage']);
+        self::assertSame($repo . '/issues', $composer['support']['issues']);
+        self::assertSame($repo, $composer['support']['source']);
+        self::assertSame('DMLab', $composer['authors'][0]['name']);
+    }
+
+    public function testComposerVersionMatchesLatestChangelogSection(): void
+    {
+        $changelog = (string)file_get_contents(dirname(__DIR__, 2) . '/CHANGELOG.md');
+
+        self::assertSame(1, preg_match('/^## (\S+)$/m', $changelog, $match));
+        self::assertSame($this->composer()['version'], $match[1]);
+    }
+
+    private function composer(): array
+    {
+        return json_decode(
+            (string)file_get_contents(dirname(__DIR__, 2) . '/composer.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+    }
 }

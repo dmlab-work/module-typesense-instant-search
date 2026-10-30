@@ -70,13 +70,17 @@ try {
 }
 
 // Generate Factory/Proxy/ExtensionAttributes classes on demand when Magento's generated/ code is absent.
+$generators = [
+    new \Magento\Framework\TestFramework\Unit\Autoloader\ExtensionAttributesGenerator(),
+    new \Magento\Framework\TestFramework\Unit\Autoloader\ExtensionAttributesInterfaceGenerator(),
+    new \Magento\Framework\TestFramework\Unit\Autoloader\FactoryGenerator(),
+];
+// ProxyGenerator is absent from Magento 2.4.7's framework.
+if (class_exists(\Magento\Framework\TestFramework\Unit\Autoloader\ProxyGenerator::class)) {
+    $generators[] = new \Magento\Framework\TestFramework\Unit\Autoloader\ProxyGenerator();
+}
 $generatedCodeAutoloader = new \Magento\Framework\TestFramework\Unit\Autoloader\GeneratedClassesAutoloader(
-    [
-        new \Magento\Framework\TestFramework\Unit\Autoloader\ExtensionAttributesGenerator(),
-        new \Magento\Framework\TestFramework\Unit\Autoloader\ExtensionAttributesInterfaceGenerator(),
-        new \Magento\Framework\TestFramework\Unit\Autoloader\FactoryGenerator(),
-        new \Magento\Framework\TestFramework\Unit\Autoloader\ProxyGenerator(),
-    ],
+    $generators,
     new \Magento\Framework\Code\Generator\Io(
         new \Magento\Framework\Filesystem\Driver\File(),
         sys_get_temp_dir() . '/dmlab-unit-generated'
