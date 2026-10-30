@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+- Supports Magento 2.4.7+ and PHP 8.2–8.5.
+- CI runs on PHP 8.2–8.5 and no longer sends Packagist download notifications.
+- Composer keywords, homepage and support links.
+- README reworked: intro, screenshot, requirements, Hyvä status.
+
 ## 0.2.0
 
 - Proxy fails fast when Typesense is down: 1 s timeout, single attempt, 30 s "unavailable" flag.

@@ -3,7 +3,7 @@
     "description": "Instant, typo-tolerant search-as-you-type dropdown for Magento 2 Luma, powered by Typesense. Free and uncapped.",
     "type": "magento2-module",
     "license": "OSL-3.0",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "keywords": [
         "magento2",
         "magento2-module",
